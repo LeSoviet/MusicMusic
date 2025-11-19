@@ -8,6 +8,7 @@ import com.musicmusic.data.repository.RadioRepository
 import com.musicmusic.di.desktopModule
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
+import java.awt.Dimension
 
 fun main() = application {
     // Inicializar Koin
@@ -24,8 +25,9 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "MusicMusic",
-        state = rememberWindowState(width = 1200.dp, height = 800.dp)
+        state = rememberWindowState(width = 1366.dp, height = 768.dp)
     ) {
+        window.minimumSize = Dimension(1366, 768)
         App()
     }
 }

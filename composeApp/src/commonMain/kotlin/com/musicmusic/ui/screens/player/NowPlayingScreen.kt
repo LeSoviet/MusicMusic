@@ -7,24 +7,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.musicmusic.domain.model.PlaybackState
 import com.musicmusic.ui.components.*
+import com.musicmusic.domain.model.PlaybackState
 import org.koin.compose.koinInject
 
-/**
- * Pantalla principal de reproducción (Now Playing).
- * 
- * Muestra:
- * - Carátula grande con fondo blur
- * - Información de la canción
- * - Barra de progreso
- * - Controles de reproducción
- * - Control de volumen
- * - Botones de favorito y opciones
- */
 @Composable
 fun NowPlayingScreen(
     onBack: () -> Unit,
@@ -37,143 +27,139 @@ fun NowPlayingScreen(
     val repeatMode by playerViewModel.repeatMode.collectAsState()
     val volume by playerViewModel.volume.collectAsState()
     val progress = playerViewModel.getProgress()
-    
+
     Scaffold(
-        topBar = {
-            NowPlayingTopBar(onBack = onBack)
-        }
+        topBar = { NowPlayingTopBar(onBack = onBack) }
     ) { paddingValues ->
-        Column(
-            modifier = modifier
+
+        // 🟢 CONTENEDOR FIJO QUE NO SE DEFORMA
+        Box(
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .clipToBounds() // oculta lo que no entre si se achica la ventana
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            // Carátula con fondo blur
-            AlbumCoverWithBlur(
-                coverArtPath = currentSong?.coverArtPath,
-                coverSize = 320.dp
-            )
-            
-            Spacer(modifier = Modifier.height(48.dp))
-            
-            // Información de la canción
-            SongInfo(
-                title = currentSong?.title ?: "No song playing",
-                artist = currentSong?.getDisplayArtist() ?: "",
-                album = currentSong?.album ?: ""
-            )
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            // Barra de progreso
             Column(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .width(1366.dp)        // 🔥 RESOLUCIÓN FIJA
+                    .height(768.dp)
+                    .padding(paddingValues)
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                SeekBar(
-                    progress = progress,
-                    onSeekStart = {
-                        playerViewModel.startSeeking((playerViewModel.duration.value * it).toLong())
-                    },
-                    onSeekChange = { newProgress ->
-                        val newPosition = (playerViewModel.duration.value * newProgress).toLong()
-                        playerViewModel.updateSeekPosition(newPosition)
-                    },
-                    onSeekEnd = {
-                        playerViewModel.endSeeking()
-                    },
-                    enabled = currentSong != null
+                // Carátula
+                AlbumCoverWithBlur(
+                    coverArtPath = currentSong?.coverArtPath,
+                    coverSize = 220.dp
                 )
-                
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Info canción
+                SongInfo(
+                    title = currentSong?.title ?: "No song playing",
+                    artist = currentSong?.getDisplayArtist() ?: "",
+                    album = currentSong?.album ?: ""
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Barra de progreso
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    SeekBar(
+                        progress = progress,
+                        onSeekStart = {
+                            playerViewModel.startSeeking(
+                                (playerViewModel.duration.value * it).toLong()
+                            )
+                        },
+                        onSeekChange = { newProgress ->
+                            val newPosition =
+                                (playerViewModel.duration.value * newProgress).toLong()
+                            playerViewModel.updateSeekPosition(newPosition)
+                        },
+                        onSeekEnd = { playerViewModel.endSeeking() },
+                        enabled = currentSong != null
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = playerViewModel.getFormattedPosition(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = playerViewModel.getFormattedDuration(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Controles principales
+                PlayerControls(
+                    playbackState = playbackState,
+                    isShuffleEnabled = isShuffleEnabled,
+                    repeatMode = repeatMode,
+                    onPlayPause = { playerViewModel.togglePlayPause() },
+                    onPrevious = { playerViewModel.previous() },
+                    onNext = { playerViewModel.next() },
+                    onShuffle = { playerViewModel.toggleShuffle() },
+                    onRepeat = { playerViewModel.toggleRepeatMode() },
+                    showSecondaryControls = true
+                )
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
-                // Tiempos
+
+                // Acciones extra
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = playerViewModel.getFormattedPosition(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    // Favorito
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(
+                            imageVector = if (currentSong?.isFavorite == true)
+                                Icons.Rounded.Favorite
+                            else Icons.Rounded.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = if (currentSong?.isFavorite == true)
+                                MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    // Volumen
+                    VolumeControl(
+                        volume = volume,
+                        onVolumeChange = { playerViewModel.setVolume(it) },
+                        orientation = VolumeOrientation.Horizontal
                     )
-                    Text(
-                        text = playerViewModel.getFormattedDuration(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+
+                    // Cola
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(
+                            imageVector = Icons.Rounded.QueueMusic,
+                            contentDescription = "Queue"
+                        )
+                    }
                 }
             }
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            // Controles de reproducción
-            PlayerControls(
-                playbackState = playbackState,
-                isShuffleEnabled = isShuffleEnabled,
-                repeatMode = repeatMode,
-                onPlayPause = { playerViewModel.togglePlayPause() },
-                onPrevious = { playerViewModel.previous() },
-                onNext = { playerViewModel.next() },
-                onShuffle = { playerViewModel.toggleShuffle() },
-                onRepeat = { playerViewModel.toggleRepeatMode() },
-                showSecondaryControls = true
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Fila de acciones adicionales
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Botón de favorito
-                IconButton(onClick = { /* TODO: Toggle favorite */ }) {
-                    Icon(
-                        imageVector = if (currentSong?.isFavorite == true) {
-                            Icons.Rounded.Favorite
-                        } else {
-                            Icons.Rounded.FavoriteBorder
-                        },
-                        contentDescription = "Favorite",
-                        tint = if (currentSong?.isFavorite == true) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
-                }
-                
-                // Control de volumen
-                VolumeControl(
-                    volume = volume,
-                    onVolumeChange = { playerViewModel.setVolume(it) },
-                    orientation = VolumeOrientation.Horizontal
-                )
-                
-                // Botón de cola
-                IconButton(onClick = { /* TODO: Show queue */ }) {
-                    Icon(
-                        imageVector = Icons.Rounded.QueueMusic,
-                        contentDescription = "Queue"
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun NowPlayingTopBar(
-    onBack: () -> Unit
-) {
+private fun NowPlayingTopBar(onBack: () -> Unit) {
     TopAppBar(
         title = {},
         navigationIcon = {
@@ -185,10 +171,10 @@ private fun NowPlayingTopBar(
             }
         },
         actions = {
-            IconButton(onClick = { /* TODO: More options */ }) {
+            IconButton(onClick = { /* TODO */ }) {
                 Icon(
                     imageVector = Icons.Rounded.MoreVert,
-                    contentDescription = "More"
+                    contentDescription = "More options"
                 )
             }
         },
@@ -209,38 +195,33 @@ private fun SongInfo(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Título
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
-            maxLines = 2,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 32.dp)
+            modifier = Modifier.padding(horizontal = 24.dp)
         )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // Artista
+
+        Spacer(modifier = Modifier.height(4.dp))
+
         if (artist.isNotEmpty()) {
             Text(
                 text = artist,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }
-        
-        Spacer(modifier = Modifier.height(4.dp))
-        
-        // Álbum
+
         if (album.isNotEmpty()) {
             Text(
                 text = album,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
                 maxLines = 1,
