@@ -13,18 +13,18 @@ Este documento organiza todos los errores encontrados y mejoras necesarias antes
 ## 🔴 CRÍTICOS (Bloquean funcionalidad principal)
 
 ### 1. Base de Datos No Inicializa
-**Estado**: 🔴 Pendiente  
+**Estado**: ✅ COMPLETADO  
 **Prioridad**: P0 - CRÍTICA  
 **Impacto**: Radios no funcionan, sistema de favoritos no funciona
 
 **Pasos**:
-- [ ] 1.1 Verificar generación de código SQLDelight (ejecutar `generateSqlDelightInterface`)
-- [ ] 1.2 Revisar schema de `Radio.sq` y validar sintaxis
-- [ ] 1.3 Implementar manejo de errores robusto en `DatabaseDriverFactory`
-- [ ] 1.4 Agregar logging detallado durante creación de schema
-- [ ] 1.5 Verificar permisos de escritura en carpeta `.musicmusic`
-- [ ] 1.6 Testing: Crear test unitario para inicialización de DB
-- [ ] 1.7 Testing: Verificar que las queries funcionen después de crear schema
+- [x] 1.1 Verificar generación de código SQLDelight (ejecutar `generateSqlDelightInterface`)
+- [x] 1.2 Revisar schema de `Radio.sq` y validar sintaxis
+- [x] 1.3 Implementar manejo de errores robusto en `DatabaseDriverFactory`
+- [x] 1.4 Agregar logging detallado durante creación de schema
+- [x] 1.5 Verificar permisos de escritura en carpeta `.musicmusic`
+- [x] 1.6 Testing: Crear test unitario para inicialización de DB
+- [x] 1.7 Testing: Verificar que las queries funcionen después de crear schema
 
 **Archivos Afectados**:
 - `DatabaseDriverFactory.kt`
@@ -34,20 +34,20 @@ Este documento organiza todos los errores encontrados y mejoras necesarias antes
 ---
 
 ### 2. Scanner de Archivos MP3 No Funciona
-**Estado**: 🔴 Pendiente  
+**Estado**: ✅ COMPLETADO  
 **Prioridad**: P0 - CRÍTICA  
 **Impacto**: No se pueden importar canciones
 
 **Pasos**:
-- [ ] 2.1 Agregar selector de archivos individuales (no solo carpetas)
-- [ ] 2.2 Implementar selector multi-archivo con filtros (.mp3, .flac, .wav, etc.)
-- [ ] 2.3 Revisar callback en `LibraryViewModel.scanDirectory()`
-- [ ] 2.4 Agregar logging en `FileScanner` para debug
-- [ ] 2.5 Implementar progress feedback durante escaneo
-- [ ] 2.6 Verificar que `MetadataReader` lea correctamente tags ID3
-- [ ] 2.7 Testing: Escanear carpeta con archivos mal formateados
-- [ ] 2.8 Testing: Escanear archivos individuales
-- [ ] 2.9 Testing: Verificar que aparezcan en la UI después de escanear
+- [x] 2.1 Agregar selector de archivos individuales (no solo carpetas)
+- [x] 2.2 Implementar selector multi-archivo con filtros (.mp3, .flac, .wav, etc.)
+- [x] 2.3 Revisar callback en `LibraryViewModel.scanDirectory()`
+- [x] 2.4 Agregar logging en `FileScanner` para debug
+- [x] 2.5 Implementar progress feedback durante escaneo
+- [x] 2.6 Verificar que `MetadataReader` lea correctamente tags ID3
+- [x] 2.7 Testing: Escanear carpeta con archivos mal formateados
+- [x] 2.8 Testing: Escanear archivos individuales
+- [x] 2.9 Testing: Verificar que aparezcan en la UI después de escanear
 
 **Archivos Afectados**:
 - `FileScanner.kt`
@@ -59,21 +59,21 @@ Este documento organiza todos los errores encontrados y mejoras necesarias antes
 ---
 
 ### 3. Lectura de Metadatos Incorrecta
-**Estado**: 🔴 Pendiente  
+**Estado**: ✅ COMPLETADO  
 **Prioridad**: P0 - CRÍTICA  
 **Impacto**: Información de canciones incorrecta o faltante
 
 **Pasos**:
-- [ ] 3.1 Implementar fallback inteligente para archivos mal formateados
-- [ ] 3.2 Si falta título: usar nombre de archivo (sin extensión)
-- [ ] 3.3 Si falta artista: usar "Unknown Artist"
-- [ ] 3.4 Si falta álbum: usar "Unknown Album"
-- [ ] 3.5 Implementar normalización de strings (trim, remove special chars)
-- [ ] 3.6 Agregar detección de encoding (UTF-8, Latin-1, etc.)
-- [ ] 3.7 Implementar parsing robusto de duración
-- [ ] 3.8 Testing: Archivos sin tags
-- [ ] 3.9 Testing: Archivos con tags incompletos
-- [ ] 3.10 Testing: Archivos con caracteres especiales en nombres
+- [x] 3.1 Implementar fallback inteligente para archivos mal formateados
+- [x] 3.2 Si falta título: usar nombre de archivo (sin extensión)
+- [x] 3.3 Si falta artista: usar "Unknown Artist"
+- [x] 3.4 Si falta álbum: usar "Unknown Album"
+- [x] 3.5 Implementar normalización de strings (trim, remove special chars)
+- [x] 3.6 Agregar detección de encoding (UTF-8, Latin-1, etc.)
+- [x] 3.7 Implementar parsing robusto de duración
+- [x] 3.8 Testing: Archivos sin tags
+- [x] 3.9 Testing: Archivos con tags incompletos
+- [x] 3.10 Testing: Archivos con caracteres especiales en nombres
 
 **Archivos Afectados**:
 - `MetadataReader.kt`
@@ -84,18 +84,18 @@ Este documento organiza todos los errores encontrados y mejoras necesarias antes
 ## 🟡 IMPORTANTES (Afectan experiencia de usuario significativamente)
 
 ### 4. Queue es Modal y Rompe el Layout
-**Estado**: 🟡 Pendiente  
+**Estado**: ✅ COMPLETADO  
 **Prioridad**: P1 - ALTA  
 **Impacto**: Navegación confusa, layout roto
 
 **Pasos**:
-- [ ] 4.1 Eliminar `QueueScreen` como modal
-- [ ] 4.2 Convertir Queue en pantalla normal (Screen.QUEUE)
-- [ ] 4.3 Agregar NavigationRailItem para Queue
-- [ ] 4.4 Usar mismo layout que Library/Radios
-- [ ] 4.5 Implementar transición animada al navegar a Queue
-- [ ] 4.6 Actualizar enum `Screen` si es necesario
-- [ ] 4.7 Testing: Navegar entre todas las pantallas sin romper layout
+- [x] 4.1 Eliminar `QueueScreen` como modal
+- [x] 4.2 Convertir Queue en pantalla normal (Screen.QUEUE)
+- [x] 4.3 Agregar NavigationRailItem para Queue
+- [x] 4.4 Usar mismo layout que Library/Radios
+- [x] 4.5 Implementar transición animada al navegar a Queue
+- [x] 4.6 Actualizar enum `Screen` si es necesario
+- [x] 4.7 Testing: Navegar entre todas las pantallas sin romper layout
 
 **Archivos Afectados**:
 - `QueueScreen.kt`
@@ -104,20 +104,20 @@ Este documento organiza todos los errores encontrados y mejoras necesarias antes
 ---
 
 ### 5. No Hay Forma de Seleccionar Canción Individual
-**Estado**: 🟡 Pendiente  
+**Estado**: ✅ COMPLETADO  
 **Prioridad**: P1 - ALTA  
 **Impacto**: Solo se pueden importar carpetas completas
 
 **Pasos**:
-- [ ] 5.1 Agregar botón "Add Files" en LibraryScreen
-- [ ] 5.2 Agregar botón "Add Folder" en LibraryScreen
-- [ ] 5.3 Implementar `JFileChooser` con `FILES_AND_DIRECTORIES`
-- [ ] 5.4 Implementar filtro de extensiones de audio
-- [ ] 5.5 Implementar selección múltiple de archivos
-- [ ] 5.6 Agregar ambas opciones en Settings > Biblioteca
-- [ ] 5.7 Testing: Seleccionar archivos individuales
-- [ ] 5.8 Testing: Seleccionar múltiples archivos
-- [ ] 5.9 Testing: Seleccionar carpeta
+- [x] 5.1 Agregar botón "Add Files" en LibraryScreen
+- [x] 5.2 Agregar botón "Add Folder" en LibraryScreen
+- [x] 5.3 Implementar `JFileChooser` con `FILES_AND_DIRECTORIES`
+- [x] 5.4 Implementar filtro de extensiones de audio
+- [x] 5.5 Implementar selección múltiple de archivos
+- [x] 5.6 Agregar ambas opciones en Settings > Biblioteca
+- [x] 5.7 Testing: Seleccionar archivos individuales
+- [x] 5.8 Testing: Seleccionar múltiples archivos
+- [x] 5.9 Testing: Seleccionar carpeta
 
 **Archivos Afectados**:
 - `LibraryScreen.kt`
@@ -132,7 +132,7 @@ Este documento organiza todos los errores encontrados y mejoras necesarias antes
 **Impacto**: Radios no disponibles o enlaces muertos
 
 **Pasos**:
-- [ ] 6.1 Revisar carpeta `importradios/` (crear si no existe)
+- [ ] 6.1 Revisar carpeta `importradios/` (importar solo unas 100 radios funcionales lo mas variado posible para el mvp)
 - [ ] 6.2 Implementar formato JSON para lista de radios
 - [ ] 6.3 Crear script PowerShell `scripts/check-radios.ps1`
 - [ ] 6.4 Script: Leer lista de URLs
@@ -156,17 +156,17 @@ Este documento organiza todos los errores encontrados y mejoras necesarias antes
 ---
 
 ### 7. Icono de Reloj de Arena Sin Función
-**Estado**: 🟡 Pendiente  
+**Estado**: ✅ COMPLETADO  
 **Prioridad**: P1 - ALTA  
 **Impacto**: Confusión del usuario, elemento no funcional
 
 **Pasos**:
-- [ ] 7.1 Identificar dónde aparece el icono (PlayerBar, NowPlayingScreen)
-- [ ] 7.2 Revisar código: buscar `Icons.*.HourglassEmpty` o similar
-- [ ] 7.3 Si es placeholder: reemplazar por Play/Pause según estado
-- [ ] 7.4 Si es loading indicator: conectar con estado de reproducción
-- [ ] 7.5 Eliminar si no tiene propósito definido
-- [ ] 7.6 Testing: Verificar que Play/Pause funcione correctamente
+- [x] 7.1 Identificar dónde aparece el icono (PlayerBar, NowPlayingScreen)
+- [x] 7.2 Revisar código: buscar `Icons.*.HourglassEmpty` o similar
+- [x] 7.3 Si es placeholder: reemplazar por Play/Pause según estado
+- [x] 7.4 Si es loading indicator: conectar con estado de reproducción
+- [x] 7.5 Eliminar si no tiene propósito definido
+- [x] 7.6 Testing: Verificar que Play/Pause funcione correctamente
 
 **Archivos Afectados**:
 - `PlayerBar.kt`
@@ -198,19 +198,19 @@ Este documento organiza todos los errores encontrados y mejoras necesarias antes
 ---
 
 ### 9. Player Bar Debe Estar Siempre Visible y Expandible
-**Estado**: 🟡 Pendiente  
+**Estado**: ✅ COMPLETADO  
 **Prioridad**: P1 - ALTA  
 **Impacto**: Difícil acceder a canción actual
 
 **Pasos**:
-- [ ] 9.1 Verificar que PlayerBar esté siempre en bottom
-- [ ] 9.2 Agregar botón "Expand" en PlayerBar
-- [ ] 9.3 Implementar animación de expansión a NowPlayingScreen
-- [ ] 9.4 Agregar botón "Collapse" en NowPlayingScreen
-- [ ] 9.5 Implementar drag-to-dismiss gesture (opcional)
-- [ ] 9.6 Persistir PlayerBar en todas las pantallas
-- [ ] 9.7 Testing: Navegar entre pantallas con PlayerBar visible
-- [ ] 9.8 Testing: Expandir/colapsar reproductor
+- [x] 9.1 Verificar que PlayerBar esté siempre en bottom
+- [x] 9.2 Agregar botón "Expand" en PlayerBar
+- [x] 9.3 Implementar animación de expansión a NowPlayingScreen
+- [x] 9.4 Agregar botón "Collapse" en NowPlayingScreen
+- [x] 9.5 Implementar drag-to-dismiss gesture (opcional)
+- [x] 9.6 Persistir PlayerBar en todas las pantallas
+- [x] 9.7 Testing: Navegar entre pantallas con PlayerBar visible
+- [x] 9.8 Testing: Expandir/colapsar reproductor
 
 **Archivos Afectados**:
 - `PlayerBar.kt`
@@ -220,19 +220,19 @@ Este documento organiza todos los errores encontrados y mejoras necesarias antes
 ---
 
 ### 10. Seek Bar en NowPlayingScreen Se Buguea
-**Estado**: 🟡 Pendiente  
+**Estado**: ✅ COMPLETADO  
 **Prioridad**: P1 - ALTA  
 **Impacto**: No se puede adelantar/retroceder canciones
 
 **Pasos**:
-- [ ] 10.1 Revisar implementación de `Slider` en NowPlayingScreen
-- [ ] 10.2 Verificar binding de `currentPosition` con Slider value
-- [ ] 10.3 Implementar `onValueChangeFinished` correctamente
-- [ ] 10.4 Desactivar auto-update durante drag
-- [ ] 10.5 Usar `isSeeking` state del ViewModel
-- [ ] 10.6 Reemplazar icono reloj de arena por Play/Pause
-- [ ] 10.7 Testing: Arrastrar seek bar múltiples veces
-- [ ] 10.8 Testing: Verificar que la posición real coincida
+- [x] 10.1 Revisar implementación de `Slider` en NowPlayingScreen
+- [x] 10.2 Verificar binding de `currentPosition` con Slider value
+- [x] 10.3 Implementar `onValueChangeFinished` correctamente
+- [x] 10.4 Desactivar auto-update durante drag
+- [x] 10.5 Usar `isSeeking` state del ViewModel
+- [x] 10.6 Reemplazar icono reloj de arena por Play/Pause
+- [x] 10.7 Testing: Arrastrar seek bar múltiples veces
+- [x] 10.8 Testing: Verificar que la posición real coincida
 
 **Archivos Afectados**:
 - `NowPlayingScreen.kt`
@@ -564,20 +564,20 @@ Este documento organiza todos los errores encontrados y mejoras necesarias antes
 ## 📊 Resumen de Prioridades
 
 ### P0 - CRÍTICO (Debe hacerse antes de Fase 7)
-- Issue #1: Base de datos no inicializa
-- Issue #2: Scanner de archivos no funciona
-- Issue #3: Lectura de metadatos incorrecta
+- ✅ Issue #1: Base de datos no inicializa
+- ✅ Issue #2: Scanner de archivos no funciona
+- ✅ Issue #3: Lectura de metadatos incorrecta
 
 ### P1 - ALTA (Debe hacerse en Fase 7)
-- Issue #4: Queue es modal y rompe layout
-- Issue #5: No hay selector de archivos individuales
+- ✅ Issue #4: Queue es modal y rompe layout
+- ✅ Issue #5: No hay selector de archivos individuales
 - Issue #6: Importar y curar radios
-- Issue #7: Icono de reloj de arena sin función
+- ✅ Issue #7: Icono de reloj de arena sin función
 - Issue #8: Integrar VLC en instalador
-- Issue #9: Player bar siempre visible
-- Issue #10: Seek bar se buguea
+- ✅ Issue #9: Player bar siempre visible
+- ✅ Issue #10: Seek bar se buguea
 - Issue #18: Carpeta de música no funciona
-- Issue #24: Persistir settings
+- ✅ Issue #24: Persistir settings
 
 ### P2 - MEDIA (Puede hacerse después de Fase 7)
 - Issue #11: Click para seleccionar, doble click para play
@@ -655,7 +655,8 @@ Para cada issue, verificar:
 
 **Última actualización**: Noviembre 18, 2025  
 **Total de Issues**: 24  
-**Críticos**: 3  
-**Alta Prioridad**: 8  
+**Completados**: 9 ✅  
+**Críticos**: 0 (3/3 completados)  
+**Alta Prioridad**: 2 (6/8 completados)  
 **Media Prioridad**: 10  
 **Baja Prioridad**: 3

@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -107,6 +109,18 @@ fun PlayerBar(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
+                    }
+                    
+                    // Icono de expansión
+                    IconButton(
+                        onClick = onClick,
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.KeyboardArrowUp,
+                            contentDescription = "Expand player",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     
                     // Controles compactos

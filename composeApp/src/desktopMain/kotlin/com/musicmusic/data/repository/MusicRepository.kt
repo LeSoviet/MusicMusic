@@ -5,6 +5,7 @@ import com.musicmusic.domain.model.Artist
 import com.musicmusic.domain.model.Song
 import com.musicmusic.files.FileScanner
 import com.musicmusic.files.MetadataReader
+import com.musicmusic.files.MetadataNormalizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,40 +57,7 @@ class MusicRepository(
             
             // Escanear archivos
             val audioFiles = fileScanner.findAudioFiles(directory)
-            val totalFiles = audioFiles.size
-            
-            // Extraer metadata
-            val songs = mutableListOf<Song>()
-            for ((index, file) in audioFiles.withIndex()) {
-                try {
-                    val metadata = metadataReader.readMetadata(file) ?: continue
-                    val song = Song(
-                        id = file.absolutePath,
-                        title = metadata.title ?: file.nameWithoutExtension,
-                        artist = metadata.artist ?: "Unknown Artist",
-                        album = metadata.album ?: "Unknown Album",
-                        albumArtist = metadata.albumArtist,
-                        genre = metadata.genre,
-                        year = metadata.year,
-                        trackNumber = metadata.trackNumber,
-                        duration = metadata.duration,
-                        filePath = file.absolutePath,
-                        coverArtPath = null, // Will be implemented later
-                        isFavorite = false
-                    )
-                    songs.add(song)
-                } catch (e: Exception) {
-                    println("Error reading metadata for ${file.name}: ${e.message}")
-                }
-                
-                _scanProgress.value = (index + 1).toFloat() / totalFiles
-            }
-            
-            // Actualizar biblioteca
-            _allSongs.value = songs.sortedBy { it.title.lowercase() }
-            
-            // Organizar por álbumes y artistas
-            organizeLibrary()
+            processFiles(audioFiles)
             
         } finally {
             _isScanning.value = false
@@ -98,53 +66,151 @@ class MusicRepository(
     }
     
     /**
+     * Agrega archivos individuales a la biblioteca
+     */
+    suspend fun addFiles(files: List<File>) = withContext(Dispatchers.IO) {
+        _isScanning.value = true
+        _scanProgress.value = 0f
+        
+        try {
+            // Filtrar solo archivos de audio
+            val audioFiles = files.filter { metadataReader.isAudioFile(it) }
+            processFiles(audioFiles)
+            
+        } finally {
+            _isScanning.value = false
+            _scanProgress.value = 1f
+        }
+    }
+    
+    /**
+     * Procesa una lista de archivos de audio
+     */
+    private suspend fun processFiles(audioFiles: List<File>) = withContext(Dispatchers.IO) {
+        val totalFiles = audioFiles.size
+        
+        // Extraer metadata
+        val newSongs = mutableListOf<Song>()
+        for ((index, file) in audioFiles.withIndex()) {
+            try {
+                // Leer metadatos del archivo
+                val rawMetadata = metadataReader.readMetadata(file)
+                
+                // Normalizar metadatos con fallbacks inteligentes
+                val metadata = MetadataNormalizer.normalize(rawMetadata, file)
+                
+                // Buscar carátula en la carpeta si no está embebida
+                val coverArtPath = if (metadata.coverArtData != null) {
+                    // TODO: Guardar cover art embebida
+                    null
+                } else {
+                    MetadataNormalizer.findCoverArtInFolder(file)?.absolutePath
+                }
+                
+                val song = Song(
+                    id = file.absolutePath,
+                    title = metadata.title ?: file.nameWithoutExtension,
+                    artist = metadata.artist ?: "Unknown Artist",
+                    album = metadata.album ?: "Unknown Album",
+                    albumArtist = metadata.albumArtist,
+                    genre = metadata.genre,
+                    year = metadata.year,
+                    trackNumber = metadata.trackNumber,
+                    duration = metadata.duration,
+                    filePath = file.absolutePath,
+                    coverArtPath = coverArtPath,
+                    isFavorite = false
+                )
+                newSongs.add(song)
+                
+                println("✅ ${file.name} -> ${song.artist} - ${song.title}")
+            } catch (e: Exception) {
+                println("⚠️ Error processing ${file.name}: ${e.message}")
+            }
+            
+            _scanProgress.value = (index + 1).toFloat() / totalFiles
+        }
+        
+        // Merge con biblioteca existente (evitar duplicados por path)
+        val existingSongs = _allSongs.value
+        val existingPaths = existingSongs.map { it.filePath }.toSet()
+        val songsToAdd = newSongs.filter { it.filePath !in existingPaths }
+        
+        // Actualizar biblioteca
+        _allSongs.value = (existingSongs + songsToAdd).sortedBy { it.title.lowercase() }
+        
+        // Reorganizar por álbumes y artistas
+        organizeLibrary()
+        
+        println("✅ Added ${songsToAdd.size} new songs (${newSongs.size - songsToAdd.size} duplicates skipped)")
+    }
+    
+    /**
      * Organiza las canciones en álbumes y artistas
      */
     private fun organizeLibrary() {
         val songs = _allSongs.value
         
-        // Agrupar por álbum
+        // Agrupar por álbum (usando normalización)
         val albumsMap = songs
-            .groupBy { it.album }
-            .mapNotNull { (albumName, songs) ->
-                if (albumName.isEmpty()) return@mapNotNull null
+            .groupBy { MetadataNormalizer.normalizeAlbumName(it.album) }
+            .mapNotNull { (normalizedAlbum, albumSongs) ->
+                if (normalizedAlbum.isEmpty() || normalizedAlbum == "unknown album") return@mapNotNull null
                 
-                val firstSong = songs.first()
+                val firstSong = albumSongs.first()
+                // Usar el nombre original del primer álbum encontrado
+                val albumName = albumSongs.first().album
+                
                 Album(
-                    id = albumName.lowercase().replace(" ", "_"),
+                    id = normalizedAlbum.lowercase().replace(" ", "_"),
                     title = albumName,
                     artist = firstSong.albumArtist?.ifEmpty { firstSong.artist } ?: firstSong.artist,
                     year = firstSong.year,
-                    coverArtPath = firstSong.coverArtPath,
-                    songCount = songs.size,
-                    totalDuration = songs.sumOf { it.duration }
+                    coverArtPath = albumSongs.firstOrNull { it.coverArtPath != null }?.coverArtPath,
+                    songCount = albumSongs.size,
+                    totalDuration = albumSongs.sumOf { it.duration }
                 )
             }
             .sortedBy { it.title.lowercase() }
         
         _albums.value = albumsMap
         
-        // Agrupar por artista
+        // Agrupar por artista (usando normalización)
         val artistsMap = songs
             .flatMap { song ->
-                val artists = mutableListOf<String>()
-                if (song.artist.isNotEmpty()) artists.add(song.artist)
+                val artists = mutableListOf<Pair<String, String>>() // Pair of (normalized, original)
+                if (song.artist.isNotEmpty()) {
+                    artists.add(
+                        MetadataNormalizer.normalizeArtistName(song.artist) to song.artist
+                    )
+                }
                 if (song.albumArtist?.isNotEmpty() == true && song.albumArtist != song.artist) {
-                    artists.add(song.albumArtist)
+                    artists.add(
+                        MetadataNormalizer.normalizeArtistName(song.albumArtist) to song.albumArtist
+                    )
                 }
-                artists.distinct().map { it to song }
+                artists.distinct().map { (normalized, original) -> Triple(normalized, original, song) }
             }
-            .groupBy({ it.first }, { it.second })
-            .map { (artistName, artistSongs) ->
-                val distinctSongs = artistSongs.distinct()
-                val artistAlbums = albumsMap.filter { 
-                    it.artist.equals(artistName, ignoreCase = true) 
+            .groupBy({ it.first }, { Triple(it.second, it.third, Unit) })
+            .mapNotNull { (normalizedArtist, entries) ->
+                if (normalizedArtist.isEmpty() || normalizedArtist.lowercase() == "unknown artist") return@mapNotNull null
+                
+                // Usar el nombre original más común
+                val originalName = entries
+                    .groupBy { it.first }
+                    .maxByOrNull { it.value.size }
+                    ?.key ?: normalizedArtist
+                
+                val artistSongs = entries.map { it.second }.distinct()
+                val artistAlbums = albumsMap.filter { album ->
+                    MetadataNormalizer.normalizeArtistName(album.artist) == normalizedArtist
                 }
+                
                 Artist(
-                    id = artistName.lowercase().replace(" ", "_"),
-                    name = artistName,
+                    id = normalizedArtist.lowercase().replace(" ", "_"),
+                    name = originalName,
                     albumCount = artistAlbums.size,
-                    songCount = distinctSongs.size
+                    songCount = artistSongs.size
                 )
             }
             .sortedBy { it.name.lowercase() }

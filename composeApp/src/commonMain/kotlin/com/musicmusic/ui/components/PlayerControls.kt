@@ -47,19 +47,24 @@ fun PlayerControls(
     showSecondaryControls: Boolean = true
 ) {
     Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.Center,
+        modifier = modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (showSecondaryControls) {
             // Shuffle button
             IconButton(
                 onClick = onShuffle,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier
+                    .size(40.dp)
+                    .weight(1f, fill = false)
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Shuffle,
                     contentDescription = "Shuffle",
+                    modifier = Modifier.size(20.dp),
                     tint = if (isShuffleEnabled) {
                         MaterialTheme.colorScheme.primary
                     } else {
@@ -67,67 +72,66 @@ fun PlayerControls(
                     }
                 )
             }
-            
-            Spacer(modifier = Modifier.width(8.dp))
         }
         
         // Previous button
         IconButton(
             onClick = onPrevious,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier
+                .size(48.dp)
+                .weight(1f, fill = false)
         ) {
             Icon(
                 imageVector = Icons.Rounded.SkipPrevious,
                 contentDescription = "Previous",
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(28.dp)
             )
         }
-        
-        Spacer(modifier = Modifier.width(16.dp))
         
         // Play/Pause button (grande y prominente)
         FilledIconButton(
             onClick = onPlayPause,
-            modifier = Modifier.size(64.dp),
+            modifier = Modifier
+                .size(56.dp)
+                .weight(1f, fill = false),
             colors = IconButtonDefaults.filledIconButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary
             )
         ) {
             val icon = when (playbackState) {
-                PlaybackState.PLAYING -> Icons.Rounded.Pause
-                PlaybackState.BUFFERING -> Icons.Rounded.HourglassEmpty
+                PlaybackState.PLAYING, PlaybackState.BUFFERING -> Icons.Rounded.Pause
                 else -> Icons.Rounded.PlayArrow
             }
             
             Icon(
                 imageVector = icon,
                 contentDescription = if (playbackState == PlaybackState.PLAYING) "Pause" else "Play",
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(32.dp),
                 tint = MaterialTheme.colorScheme.onPrimary
             )
         }
         
-        Spacer(modifier = Modifier.width(16.dp))
-        
         // Next button
         IconButton(
             onClick = onNext,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier
+                .size(48.dp)
+                .weight(1f, fill = false)
         ) {
             Icon(
                 imageVector = Icons.Rounded.SkipNext,
                 contentDescription = "Next",
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(28.dp)
             )
         }
         
         if (showSecondaryControls) {
-            Spacer(modifier = Modifier.width(8.dp))
-            
             // Repeat button
             IconButton(
                 onClick = onRepeat,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier
+                    .size(40.dp)
+                    .weight(1f, fill = false)
             ) {
                 val icon = when (repeatMode) {
                     RepeatMode.ONE -> Icons.Rounded.RepeatOne
@@ -137,6 +141,7 @@ fun PlayerControls(
                 Icon(
                     imageVector = icon,
                     contentDescription = "Repeat",
+                    modifier = Modifier.size(20.dp),
                     tint = if (repeatMode != RepeatMode.OFF) {
                         MaterialTheme.colorScheme.primary
                     } else {
@@ -169,8 +174,7 @@ fun CompactPlayerControls(
             modifier = Modifier.size(40.dp)
         ) {
             val icon = when (playbackState) {
-                PlaybackState.PLAYING -> Icons.Rounded.Pause
-                PlaybackState.BUFFERING -> Icons.Rounded.HourglassEmpty
+                PlaybackState.PLAYING, PlaybackState.BUFFERING -> Icons.Rounded.Pause
                 else -> Icons.Rounded.PlayArrow
             }
             

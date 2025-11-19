@@ -32,6 +32,7 @@ import org.koin.compose.koinInject
 @Composable
 fun LibraryScreen(
     onScanDirectory: () -> Unit,
+    onAddFiles: () -> Unit,
     modifier: Modifier = Modifier,
     libraryViewModel: LibraryViewModel = koinInject()
 ) {
@@ -49,7 +50,8 @@ fun LibraryScreen(
             LibraryTopBar(
                 searchQuery = searchQuery,
                 onSearchQueryChange = { libraryViewModel.updateSearchQuery(it) },
-                onScanClick = onScanDirectory
+                onScanDirectoryClick = onScanDirectory,
+                onAddFilesClick = onAddFiles
             )
         }
     ) { paddingValues ->
@@ -131,7 +133,8 @@ fun LibraryScreen(
 private fun LibraryTopBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
-    onScanClick: () -> Unit
+    onScanDirectoryClick: () -> Unit,
+    onAddFilesClick: () -> Unit
 ) {
     var isSearchActive by remember { mutableStateOf(false) }
     
@@ -165,7 +168,10 @@ private fun LibraryTopBar(
                 IconButton(onClick = { isSearchActive = true }) {
                     Icon(Icons.Rounded.Search, contentDescription = "Search")
                 }
-                IconButton(onClick = onScanClick) {
+                IconButton(onClick = onAddFilesClick) {
+                    Icon(Icons.Rounded.AudioFile, contentDescription = "Add files")
+                }
+                IconButton(onClick = onScanDirectoryClick) {
                     Icon(Icons.Rounded.FolderOpen, contentDescription = "Scan directory")
                 }
             }

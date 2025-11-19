@@ -137,12 +137,34 @@ fun App() {
                                         // Abrir selector de carpeta
                                         val chooser = JFileChooser()
                                         chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-                                        chooser.dialogTitle = "Seleccionar Carpeta de Música"
+                                        chooser.dialogTitle = "Select Music Folder"
                                         
                                         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                                             val selectedPath = chooser.selectedFile.absolutePath
-                                            // Iniciar el escaneo
                                             libraryViewModel.scanDirectory(selectedPath)
+                                        }
+                                    },
+                                    onAddFiles = {
+                                        // Abrir selector de archivos múltiples
+                                        val chooser = JFileChooser()
+                                        chooser.isMultiSelectionEnabled = true
+                                        chooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                                        chooser.dialogTitle = "Add Music Files"
+                                        
+                                        // Filtro de extensiones de audio
+                                        chooser.fileFilter = object : javax.swing.filechooser.FileFilter() {
+                                            override fun accept(f: File): Boolean {
+                                                if (f.isDirectory) return true
+                                                val extension = f.extension.lowercase()
+                                                return extension in listOf("mp3", "flac", "wav", "ogg", "m4a", "aac", "wma")
+                                            }
+                                            
+                                            override fun getDescription() = "Audio Files (*.mp3, *.flac, *.wav, *.ogg, *.m4a, *.aac, *.wma)"
+                                        }
+                                        
+                                        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                                            val selectedFiles = chooser.selectedFiles.toList()
+                                            libraryViewModel.addFiles(selectedFiles)
                                         }
                                     },
                                     libraryViewModel = libraryViewModel
@@ -159,9 +181,7 @@ fun App() {
                                 )
                             }
                             Screen.QUEUE -> {
-                                QueueScreen(
-                                    onDismiss = { currentScreen = Screen.LIBRARY }
-                                )
+                                QueueScreen()
                             }
                             Screen.SETTINGS -> {
                                 SettingsScreen(
@@ -171,15 +191,17 @@ fun App() {
                         }
                     }
                     
-                    // Player Bar persistente (siempre en bottom)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(androidx.compose.ui.Alignment.BottomCenter)
-                    ) {
-                        PlayerBar(
-                            onClick = { currentScreen = Screen.NOW_PLAYING }
-                        )
+                    // Player Bar persistente (siempre en bottom, excepto en NOW_PLAYING)
+                    if (currentScreen != Screen.NOW_PLAYING) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(androidx.compose.ui.Alignment.BottomCenter)
+                        ) {
+                            PlayerBar(
+                                onClick = { currentScreen = Screen.NOW_PLAYING }
+                            )
+                        }
                     }
                 }
             }

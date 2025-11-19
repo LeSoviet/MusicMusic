@@ -53,6 +53,9 @@ kotlin {
             implementation("io.insert-koin:koin-core:3.5.3")
             implementation("io.insert-koin:koin-compose:1.1.2")
             
+            // DataStore Preferences
+            implementation("androidx.datastore:datastore-preferences-core:1.0.0")
+            
             // Immutable Collections (performance)
             implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.7")
         }
@@ -97,8 +100,8 @@ sqldelight {
             packageName.set("com.musicmusic.database")
             srcDirs.setFrom("src/commonMain/sqldelight")
             
-            // Opciones de generación
-            deriveSchemaFromMigrations.set(true)
+            // Generar schema desde archivos .sq directamente
+            deriveSchemaFromMigrations.set(false)
         }
     }
 }

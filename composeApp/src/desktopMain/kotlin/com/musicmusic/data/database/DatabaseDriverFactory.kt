@@ -10,26 +10,67 @@ import java.io.File
  */
 object DatabaseDriverFactory {
     
+    private var cachedDatabase: AppDatabase? = null
+    
     /**
      * Crea el driver de la base de datos.
      */
-    fun createDriver(): SqlDriver {
+    private fun createDriver(): SqlDriver {
         // Directorio para la base de datos
         val databaseDir = File(System.getProperty("user.home"), ".musicmusic")
         if (!databaseDir.exists()) {
-            databaseDir.mkdirs()
+            val created = databaseDir.mkdirs()
+            println("📁 Directorio de base de datos creado: $created")
         }
         
         val databasePath = File(databaseDir, "musicmusic.db")
-        val driver = JdbcSqliteDriver("jdbc:sqlite:${databasePath.absolutePath}")
+        println("📂 Database path: ${databasePath.absolutePath}")
         
-        // Crear las tablas si no existen
-        try {
-            println("📂 Base de datos en: ${databasePath.absolutePath}")
-            AppDatabase.Schema.create(driver)
-            println("✅ Esquema de base de datos creado correctamente")
+        // Crear driver con JDBC
+        val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:${databasePath.absolutePath}")
+        
+        // Verificar si las tablas ya existen
+        val tablesExist = try {
+            driver.executeQuery(
+                null,
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='RadioEntity'",
+                { cursor ->
+                    cursor.next()
+                },
+                0
+            ).value
         } catch (e: Exception) {
-            println("⚠️ Error al crear esquema (puede que ya exista): ${e.message}")
+            false
+        }
+        
+        if (!tablesExist) {
+            println("🔨 Creando schema de base de datos...")
+            try {
+                AppDatabase.Schema.create(driver)
+                println("✅ Schema creado exitosamente")
+                
+                // Verificar que se creó
+                val verification = driver.executeQuery(
+                    null,
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='RadioEntity'",
+                    { cursor ->
+                        cursor.next()
+                    },
+                    0
+                ).value
+                
+                if (verification) {
+                    println("✅ Tabla RadioEntity verificada")
+                } else {
+                    println("❌ ERROR: Tabla RadioEntity NO se creó")
+                }
+            } catch (e: Exception) {
+                println("❌ Error al crear schema: ${e.message}")
+                e.printStackTrace()
+                throw e
+            }
+        } else {
+            println("✅ Tablas ya existen en la base de datos")
         }
         
         return driver
@@ -39,6 +80,18 @@ object DatabaseDriverFactory {
      * Crea una instancia de la base de datos.
      */
     fun createDatabase(): AppDatabase {
-        return AppDatabase(createDriver())
+        if (cachedDatabase == null) {
+            println("🔄 Inicializando base de datos...")
+            cachedDatabase = AppDatabase(createDriver())
+            println("✅ Base de datos inicializada")
+        }
+        return cachedDatabase!!
+    }
+    
+    /**
+     * Limpia el caché de la base de datos (útil para testing)
+     */
+    fun clearCache() {
+        cachedDatabase = null
     }
 }

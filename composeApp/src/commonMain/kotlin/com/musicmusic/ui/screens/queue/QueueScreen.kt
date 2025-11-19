@@ -36,10 +36,8 @@ import org.koin.compose.koinInject
  * - Limpiar cola completa
  * - Historial de reproducción
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QueueScreen(
-    onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     playerViewModel: PlayerViewModel = koinInject()
 ) {
@@ -47,57 +45,37 @@ fun QueueScreen(
     val currentSong by playerViewModel.currentSong.collectAsState()
     val currentIndex by playerViewModel.currentIndex.collectAsState()
     
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        modifier = modifier,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        dragHandle = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(vertical = 12.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(32.dp)
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
-                )
-            }
-        }
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+        // Header
+        QueueHeader(
+            queueSize = queue.size,
+            onClearQueue = { playerViewModel.clearQueue() }
+        )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        // Lista de canciones
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp), // Espacio para PlayerBar
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Header
-            QueueHeader(
-                queueSize = queue.size,
-                onClearQueue = { playerViewModel.clearQueue() },
-                onDismiss = onDismiss
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Lista de canciones
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                itemsIndexed(
-                    items = queue,
-                    key = { index, song -> "${song.id}-$index" }
-                ) { index, song ->
-                    QueueItem(
-                        song = song,
-                        index = index + 1,
-                        isPlaying = song.id == currentSong?.id,
-                        onClick = { playerViewModel.playAtIndex(index) },
-                        onRemove = { playerViewModel.removeFromQueue(index) }
-                    )
-                }
+            itemsIndexed(
+                items = queue,
+                key = { index, song -> "${song.id}-$index" }
+            ) { index, song ->
+                QueueItem(
+                    song = song,
+                    index = index + 1,
+                    isPlaying = song.id == currentSong?.id,
+                    onClick = { playerViewModel.playAtIndex(index) },
+                    onRemove = { playerViewModel.removeFromQueue(index) }
+                )
             }
         }
     }
@@ -106,8 +84,7 @@ fun QueueScreen(
 @Composable
 private fun QueueHeader(
     queueSize: Int,
-    onClearQueue: () -> Unit,
-    onDismiss: () -> Unit
+    onClearQueue: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -121,13 +98,14 @@ private fun QueueHeader(
             Icon(
                 imageVector = Icons.Rounded.QueueMusic,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
             )
             
             Column {
                 Text(
                     text = "Queue",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
@@ -138,23 +116,14 @@ private fun QueueHeader(
             }
         }
         
-        Row {
-            IconButton(
-                onClick = onClearQueue,
-                enabled = queueSize > 0
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Clear,
-                    contentDescription = "Clear queue"
-                )
-            }
-            
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    imageVector = Icons.Rounded.Close,
-                    contentDescription = "Close"
-                )
-            }
+        IconButton(
+            onClick = onClearQueue,
+            enabled = queueSize > 0
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Clear,
+                contentDescription = "Clear queue"
+            )
         }
     }
 }

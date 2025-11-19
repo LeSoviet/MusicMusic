@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
  * - Hover effect premium
  * 
  * @param progress Progreso actual (0.0 a 1.0)
- * @param onProgressChange Callback cuando el usuario cambia la posición
+ * @param onSeekStart Callback cuando inicia el seek
+ * @param onSeekChange Callback durante el arrastre
+ * @param onSeekEnd Callback cuando termina el seek
  * @param modifier Modificador de Compose
  * @param enabled Si la barra está habilitada
  * @param progressColor Color de la barra de progreso
@@ -34,7 +36,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SeekBar(
     progress: Float,
-    onProgressChange: (Float) -> Unit,
+    onSeekStart: (Float) -> Unit = {},
+    onSeekChange: (Float) -> Unit = {},
+    onSeekEnd: () -> Unit = {},
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     progressColor: Color = MaterialTheme.colorScheme.primary,
@@ -64,23 +68,34 @@ fun SeekBar(
                 if (enabled) {
                     detectTapGestures { offset ->
                         val newProgress = (offset.x / size.width).coerceIn(0f, 1f)
-                        onProgressChange(newProgress)
+                        onSeekStart(newProgress)
+                        onSeekChange(newProgress)
+                        onSeekEnd()
                     }
                 }
             }
             .pointerInput(enabled) {
                 if (enabled) {
                     detectDragGestures(
-                        onDragStart = { isDragging = true },
+                        onDragStart = { offset ->
+                            isDragging = true
+                            val newProgress = (offset.x / size.width).coerceIn(0f, 1f)
+                            dragProgress = newProgress
+                            onSeekStart(newProgress)
+                        },
                         onDragEnd = {
                             isDragging = false
-                            onProgressChange(dragProgress)
+                            onSeekEnd()
                         },
-                        onDragCancel = { isDragging = false }
+                        onDragCancel = {
+                            isDragging = false
+                            onSeekEnd()
+                        }
                     ) { change, _ ->
                         change.consume()
                         val newProgress = (change.position.x / size.width).coerceIn(0f, 1f)
                         dragProgress = newProgress
+                        onSeekChange(newProgress)
                     }
                 }
             },

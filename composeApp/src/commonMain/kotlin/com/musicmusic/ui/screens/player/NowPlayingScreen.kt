@@ -75,10 +75,15 @@ fun NowPlayingScreen(
             ) {
                 SeekBar(
                     progress = progress,
-                    onProgressChange = { newProgress ->
-                        val duration = playerViewModel.duration.value
-                        val newPosition = (duration * newProgress).toLong()
-                        playerViewModel.seekTo(newPosition)
+                    onSeekStart = {
+                        playerViewModel.startSeeking((playerViewModel.duration.value * it).toLong())
+                    },
+                    onSeekChange = { newProgress ->
+                        val newPosition = (playerViewModel.duration.value * newProgress).toLong()
+                        playerViewModel.updateSeekPosition(newPosition)
+                    },
+                    onSeekEnd = {
+                        playerViewModel.endSeeking()
                     },
                     enabled = currentSong != null
                 )
@@ -175,7 +180,7 @@ private fun NowPlayingTopBar(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.Rounded.KeyboardArrowDown,
-                    contentDescription = "Back"
+                    contentDescription = "Collapse player"
                 )
             }
         },

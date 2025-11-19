@@ -121,6 +121,15 @@ class LibraryViewModel(
         }
     }
     
+    /**
+     * Agrega archivos individuales a la biblioteca
+     */
+    fun addFiles(files: List<java.io.File>) {
+        viewModelScope.launch {
+            musicRepository.addFiles(files)
+        }
+    }
+    
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
     }

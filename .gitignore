@@ -39,6 +39,7 @@ Desktop.ini
 .musicmusic/
 *.db
 *.db-journal
+*.preferences_pb
 
 # VLC
 vlc-*.zip

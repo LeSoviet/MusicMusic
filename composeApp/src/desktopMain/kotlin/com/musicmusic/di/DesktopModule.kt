@@ -2,6 +2,8 @@ package com.musicmusic.di
 
 import com.musicmusic.audio.VlcjAudioPlayer
 import com.musicmusic.data.database.DatabaseDriverFactory
+import com.musicmusic.data.preferences.UserPreferences
+import com.musicmusic.data.preferences.createUserPreferencesDataStore
 import com.musicmusic.data.repository.MusicRepository
 import com.musicmusic.data.repository.RadioRepository
 import com.musicmusic.database.AppDatabase
@@ -22,14 +24,26 @@ import org.koin.dsl.module
  */
 val desktopModule = module {
     
-    // Scope para operaciones de background
+    // Scope para operaciones de background (I/O, database, preferences)
     single<CoroutineScope> {
-        CoroutineScope(Dispatchers.Default + SupervisorJob())
+        CoroutineScope(Dispatchers.IO + SupervisorJob())
+    }
+    
+    // User Preferences
+    single {
+        createUserPreferencesDataStore()
+    }
+    
+    single {
+        UserPreferences(dataStore = get())
     }
     
     // Theme Manager
     single {
-        ThemeManager()
+        ThemeManager(
+            userPreferences = get(),
+            scope = get()
+        )
     }
     
     // Base de datos
@@ -64,6 +78,7 @@ val desktopModule = module {
     single {
         PlayerViewModel(
             audioPlayer = get(),
+            userPreferences = get(),
             viewModelScope = get()
         )
     }
