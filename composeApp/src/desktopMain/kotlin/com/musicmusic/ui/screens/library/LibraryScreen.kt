@@ -185,8 +185,11 @@ private fun SongsTab(
     onSongClick: (com.musicmusic.domain.model.Song) -> Unit,
     onToggleFavorite: (com.musicmusic.domain.model.Song) -> Unit,
     onPlayAll: () -> Unit,
-    onShuffleAll: () -> Unit
+    onShuffleAll: () -> Unit,
+    libraryViewModel: LibraryViewModel = koinInject()
 ) {
+    var selectedSongs by remember { mutableStateOf<Set<String>>(emptySet()) }
+
     Column(modifier = Modifier.fillMaxSize()) {
         // Botones de acción
         if (songs.isNotEmpty()) {
@@ -233,9 +236,38 @@ private fun SongsTab(
                 ) { song ->
                     SongItem(
                         song = song,
-                        onClick = { onSongClick(song) },
+                        onClick = { /* Not used, handled by onSelect and onDoubleClick */ },
+                        isSelected = selectedSongs.contains(song.id),
+                        onSelect = {
+                            // Single click: selecciona SOLO esta canción (limpia otras selecciones)
+                            selectedSongs = setOf(song.id)
+                        },
+                        onDoubleClick = {
+                            // Double click: reproduce la canción
+                            onSongClick(song)
+                        },
+                        onToggleSelection = { shouldAdd ->
+                            // Ctrl+Click: toggle multi-selección
+                            selectedSongs = if (shouldAdd) {
+                                selectedSongs + song.id
+                            } else {
+                                selectedSongs - song.id
+                            }
+                        },
                         onToggleFavorite = { onToggleFavorite(song) },
-                        onMoreClick = { /* TODO: Show menu */ }
+                        onMoreClick = { /* Handled by dropdown */ },
+                        onAddToQueue = { libraryViewModel.addToQueue(song) },
+                        onShowAlbum = {
+                            libraryViewModel.selectTab(LibraryTab.ALBUMS)
+                            libraryViewModel.updateSearchQuery(song.album)
+                        },
+                        onShowArtist = {
+                            libraryViewModel.selectTab(LibraryTab.ARTISTS)
+                            libraryViewModel.updateSearchQuery(song.artist)
+                        },
+                        onDelete = {
+                            // TODO: Implement delete confirmation
+                        }
                     )
                 }
             }

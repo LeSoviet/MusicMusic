@@ -66,6 +66,9 @@ class VlcjAudioPlayer(
     // Cola de reproducción interna
     private val queueList = mutableListOf<Song>()
     private var currentQueueIndex = -1
+
+    // Orden original de la cola (para restaurar al desactivar shuffle)
+    private val originalQueueOrder = mutableListOf<Song>()
     
     // Job para actualizar la posición actual
     private var positionUpdateJob: Job? = null
@@ -139,14 +142,23 @@ class VlcjAudioPlayer(
     
     override suspend fun playQueue(songs: List<Song>, startIndex: Int) = withContext(Dispatchers.IO) {
         if (songs.isEmpty()) return@withContext
-        
+
         queueList.clear()
         queueList.addAll(songs)
         currentQueueIndex = startIndex.coerceIn(0, songs.size - 1)
-        
+
+        // Guardar orden original
+        originalQueueOrder.clear()
+        originalQueueOrder.addAll(songs)
+
+        // Si shuffle está activado, mezclar inmediatamente
+        if (_isShuffleEnabled.value) {
+            shuffleQueue()
+        }
+
         _queue.value = queueList.toList()
         _currentIndex.value = currentQueueIndex
-        
+
         playCurrentSong()
     }
     
@@ -162,10 +174,21 @@ class VlcjAudioPlayer(
         }
     }
     
-    override suspend fun togglePlayPause() {
+    override suspend fun togglePlayPause() = withContext(Dispatchers.IO) {
         when (_playbackState.value) {
-            PlaybackState.PLAYING -> pause()
-            PlaybackState.PAUSED -> resume()
+            PlaybackState.PLAYING -> {
+                pause()
+            }
+            PlaybackState.PAUSED -> {
+                resume()
+            }
+            PlaybackState.STOPPED -> {
+                if (_currentSong.value != null) {
+                    playCurrentSong()
+                } else if (queueList.isNotEmpty()) {
+                    playAtIndex(0)
+                }
+            }
             else -> {}
         }
     }
@@ -259,7 +282,15 @@ class VlcjAudioPlayer(
     override suspend fun setShuffle(enabled: Boolean) {
         _isShuffleEnabled.value = enabled
         if (enabled) {
+            // Guardar orden original si no lo hemos hecho
+            if (originalQueueOrder.isEmpty() && queueList.isNotEmpty()) {
+                originalQueueOrder.clear()
+                originalQueueOrder.addAll(queueList)
+            }
             shuffleQueue()
+        } else {
+            // Restaurar orden original
+            restoreOriginalOrder()
         }
     }
     
@@ -368,17 +399,17 @@ class VlcjAudioPlayer(
     }
     
     /**
-     * Mezcla la cola de reproducción (sin cambiar la canción actual).
+     * Mezcla la cola de reproducción (preservando la canción actual).
      */
     private fun shuffleQueue() {
         if (queueList.isEmpty()) return
-        
+
         val currentSong = if (currentQueueIndex in queueList.indices) {
             queueList[currentQueueIndex]
         } else null
-        
+
         queueList.shuffle()
-        
+
         // Volver a poner la canción actual al inicio
         currentSong?.let { song ->
             queueList.remove(song)
@@ -386,7 +417,33 @@ class VlcjAudioPlayer(
             currentQueueIndex = 0
             _currentIndex.value = 0
         }
-        
+
+        _queue.value = queueList.toList()
+    }
+
+    /**
+     * Restaura el orden original de la cola (preservando la canción actual).
+     */
+    private fun restoreOriginalOrder() {
+        if (originalQueueOrder.isEmpty()) return
+
+        val currentSong = if (currentQueueIndex in queueList.indices) {
+            queueList[currentQueueIndex]
+        } else null
+
+        // Restaurar orden original
+        queueList.clear()
+        queueList.addAll(originalQueueOrder)
+
+        // Encontrar la canción actual en el orden original
+        currentSong?.let { song ->
+            val newIndex = queueList.indexOf(song)
+            if (newIndex >= 0) {
+                currentQueueIndex = newIndex
+                _currentIndex.value = newIndex
+            }
+        }
+
         _queue.value = queueList.toList()
     }
     

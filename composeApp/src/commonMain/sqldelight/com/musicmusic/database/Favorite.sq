@@ -1,0 +1,24 @@
+-- Tabla para almacenar canciones favoritas
+CREATE TABLE IF NOT EXISTS FavoriteEntity (
+    songId TEXT NOT NULL PRIMARY KEY,
+    addedAt INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+
+-- Inserts
+addFavorite:
+INSERT OR IGNORE INTO FavoriteEntity(songId, addedAt)
+VALUES (?, ?);
+
+-- Queries
+selectAll:
+SELECT * FROM FavoriteEntity ORDER BY addedAt DESC;
+
+isFavorite:
+SELECT COUNT(*) > 0 FROM FavoriteEntity WHERE songId = ?;
+
+-- Deletes
+removeFavorite:
+DELETE FROM FavoriteEntity WHERE songId = ?;
+
+deleteAll:
+DELETE FROM FavoriteEntity;

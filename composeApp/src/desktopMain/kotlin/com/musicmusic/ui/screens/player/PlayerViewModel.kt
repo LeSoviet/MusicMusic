@@ -20,7 +20,8 @@ import kotlinx.coroutines.launch
 actual class PlayerViewModel(
     private val audioPlayer: AudioPlayer,
     private val userPreferences: UserPreferences,
-    private val viewModelScope: CoroutineScope
+    private val viewModelScope: CoroutineScope,
+    private val musicRepository: com.musicmusic.data.repository.MusicRepository? = null
 ) {
     
     // ========== Estados observables desde AudioPlayer ==========
@@ -231,10 +232,22 @@ actual class PlayerViewModel(
         }
     }
     
+    private var isMuted by mutableStateOf(false)
+    private var volumeBeforeMute = 0.5f
+    
     actual fun toggleMute() {
         viewModelScope.launch {
-            val isMuted = volume.value == 0f
-            audioPlayer.setMute(!isMuted)
+            if (isMuted) {
+                // Unmute: restaurar volumen anterior
+                audioPlayer.setMute(false)
+                audioPlayer.setVolume(volumeBeforeMute)
+                isMuted = false
+            } else {
+                // Mute: guardar volumen actual y silenciar
+                volumeBeforeMute = volume.value
+                audioPlayer.setMute(true)
+                isMuted = true
+            }
         }
     }
     
@@ -332,7 +345,13 @@ actual class PlayerViewModel(
         val seconds = totalSeconds % 60
         return "%d:%02d".format(minutes, seconds)
     }
-    
+
+    // ========== Favorites ==========
+
+    actual fun toggleFavorite(songId: String) {
+        musicRepository?.toggleFavorite(songId)
+    }
+
     // ========== Lifecycle ==========
     
     actual fun onCleared() {

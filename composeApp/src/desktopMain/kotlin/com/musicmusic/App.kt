@@ -19,9 +19,11 @@ import com.musicmusic.ui.screens.radio.RadioScreen
 import com.musicmusic.ui.screens.settings.SettingsScreen
 import com.musicmusic.ui.theme.MusicMusicTheme
 import com.musicmusic.ui.theme.ThemeManager
+import com.musicmusic.data.preferences.UserPreferences
 import org.koin.compose.koinInject
 import java.io.File
 import javax.swing.JFileChooser
+import kotlinx.coroutines.launch
 
 /**
  * Aplicación principal de MusicMusic.
@@ -36,8 +38,11 @@ import javax.swing.JFileChooser
 fun App() {
     val themeManager = koinInject<ThemeManager>()
     val playerViewModel = koinInject<PlayerViewModel>()
+    val userPreferences = koinInject<UserPreferences>()
     val isDarkMode by themeManager.isDarkMode.collectAsState()
-    
+    val currentMusicFolder by userPreferences.musicFolderPath.collectAsState(initial = null)
+    val scope = rememberCoroutineScope()
+
     MusicMusicTheme(darkTheme = isDarkMode) {
         var currentScreen by remember { mutableStateOf(Screen.LIBRARY) }
         
@@ -177,15 +182,45 @@ fun App() {
                             }
                             Screen.NOW_PLAYING -> {
                                 NowPlayingScreen(
-                                    onBack = { currentScreen = Screen.LIBRARY }
+                                    onBack = { currentScreen = Screen.LIBRARY },
+                                    onShowQueue = { currentScreen = Screen.QUEUE }
                                 )
                             }
                             Screen.QUEUE -> {
                                 QueueScreen()
                             }
                             Screen.SETTINGS -> {
+                                val libraryViewModel = koinInject<com.musicmusic.ui.screens.library.LibraryViewModel>()
+                                val isScanning by libraryViewModel.isScanning.collectAsState()
+
                                 SettingsScreen(
-                                    onBack = { currentScreen = Screen.LIBRARY }
+                                    onBack = { currentScreen = Screen.LIBRARY },
+                                    onChangeMusicFolder = {
+                                        val chooser = JFileChooser()
+                                        chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+                                        chooser.dialogTitle = "Select Music Folder"
+
+                                        // Si ya hay una carpeta seleccionada, partir desde ahí
+                                        currentMusicFolder?.let { folder ->
+                                            chooser.currentDirectory = File(folder)
+                                        }
+
+                                        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                                            val selectedPath = chooser.selectedFile.absolutePath
+                                            scope.launch {
+                                                userPreferences.setMusicFolderPath(selectedPath)
+                                                // Automáticamente escanear la nueva carpeta
+                                                libraryViewModel.scanDirectory(selectedPath)
+                                            }
+                                        }
+                                    },
+                                    onUpdateLibrary = {
+                                        currentMusicFolder?.let { folder ->
+                                            libraryViewModel.scanDirectory(folder)
+                                        }
+                                    },
+                                    currentMusicFolder = currentMusicFolder,
+                                    isScanning = isScanning
                                 )
                             }
                         }

@@ -13,11 +13,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.musicmusic.ui.components.*
 import com.musicmusic.domain.model.PlaybackState
+import com.musicmusic.domain.model.RepeatMode
 import org.koin.compose.koinInject
 
 @Composable
 fun NowPlayingScreen(
     onBack: () -> Unit,
+    onShowQueue: () -> Unit,
     modifier: Modifier = Modifier,
     playerViewModel: PlayerViewModel = koinInject()
 ) {
@@ -32,20 +34,22 @@ fun NowPlayingScreen(
         topBar = { NowPlayingTopBar(onBack = onBack) }
     ) { paddingValues ->
 
-        // 🟢 CONTENEDOR FIJO QUE NO SE DEFORMA
+        // 🟢 CONTENEDOR RESPONSIVO
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clipToBounds() // oculta lo que no entre si se achica la ventana
+                .clipToBounds(), // oculta lo que no entre si se achica la ventana
+            contentAlignment = Alignment.Center
         ) {
             Column(
                 modifier = Modifier
-                    .width(1366.dp)        // 🔥 RESOLUCIÓN FIJA
-                    .height(768.dp)
+                    .fillMaxWidth(0.8f) // Ocupa el 80% del ancho disponible
+                    .fillMaxHeight()
                     .padding(paddingValues)
                     .padding(horizontal = 20.dp)
                     .padding(bottom = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
                 // Carátula
                 AlbumCoverWithBlur(
@@ -103,53 +107,184 @@ fun NowPlayingScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Controles principales
-                PlayerControls(
-                    playbackState = playbackState,
-                    isShuffleEnabled = isShuffleEnabled,
-                    repeatMode = repeatMode,
-                    onPlayPause = { playerViewModel.togglePlayPause() },
-                    onPrevious = { playerViewModel.previous() },
-                    onNext = { playerViewModel.next() },
-                    onShuffle = { playerViewModel.toggleShuffle() },
-                    onRepeat = { playerViewModel.toggleRepeatMode() },
-                    showSecondaryControls = true
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Acciones extra
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
+                // Barra de controles unificada
+                Box(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Favorito
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(
-                            imageVector = if (currentSong?.isFavorite == true)
-                                Icons.Rounded.Favorite
-                            else Icons.Rounded.FavoriteBorder,
-                            contentDescription = "Favorite",
-                            tint = if (currentSong?.isFavorite == true)
-                                MaterialTheme.colorScheme.error
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    // Controles principales centrados
+                    Row(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Playlist button (non-functional for now)
+                        IconButton(
+                            onClick = { /* TODO: Implement playlist functionality */ },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.PlaylistPlay,
+                                contentDescription = "Playlist",
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Shuffle button
+                        IconButton(
+                            onClick = { playerViewModel.toggleShuffle() },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Shuffle,
+                                contentDescription = "Shuffle",
+                                modifier = Modifier.size(20.dp),
+                                tint = if (isShuffleEnabled) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Previous button
+                        IconButton(
+                            onClick = { playerViewModel.previous() },
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.SkipPrevious,
+                                contentDescription = "Previous",
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        // Play/Pause button (grande y prominente)
+                        FilledIconButton(
+                            onClick = { playerViewModel.togglePlayPause() },
+                            modifier = Modifier.size(56.dp),
+                            colors = IconButtonDefaults.filledIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            val icon = when (playbackState) {
+                                PlaybackState.PLAYING, PlaybackState.BUFFERING -> Icons.Rounded.Pause
+                                else -> Icons.Rounded.PlayArrow
+                            }
+
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = if (playbackState == PlaybackState.PLAYING) "Pause" else "Play",
+                                modifier = Modifier.size(32.dp),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        // Next button
+                        IconButton(
+                            onClick = { playerViewModel.next() },
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.SkipNext,
+                                contentDescription = "Next",
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Repeat button
+                        IconButton(
+                            onClick = { playerViewModel.toggleRepeatMode() },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            val icon = when (repeatMode) {
+                                RepeatMode.ONE -> Icons.Rounded.RepeatOne
+                                else -> Icons.Rounded.Repeat
+                            }
+
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = "Repeat",
+                                modifier = Modifier.size(20.dp),
+                                tint = if (repeatMode != RepeatMode.OFF) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Favorite button
+                        IconButton(
+                            onClick = {
+                                currentSong?.let { song ->
+                                    playerViewModel.toggleFavorite(song.id)
+                                }
+                            },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (currentSong?.isFavorite == true) {
+                                    Icons.Rounded.Favorite
+                                } else {
+                                    Icons.Rounded.FavoriteBorder
+                                },
+                                contentDescription = "Toggle favorite",
+                                modifier = Modifier.size(20.dp),
+                                tint = if (currentSong?.isFavorite == true) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                        }
                     }
 
-                    // Volumen
-                    VolumeControl(
-                        volume = volume,
-                        onVolumeChange = { playerViewModel.setVolume(it) },
-                        orientation = VolumeOrientation.Horizontal
-                    )
-
-                    // Cola
-                    IconButton(onClick = { /* TODO */ }) {
+                    // Controles secundarios (volumen y queue) a la derecha
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Volume control
                         Icon(
-                            imageVector = Icons.Rounded.QueueMusic,
-                            contentDescription = "Queue"
+                            imageVector = Icons.Rounded.VolumeUp,
+                            contentDescription = "Volume",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
                         )
+                        Slider(
+                            value = volume,
+                            onValueChange = { playerViewModel.setVolume(it) },
+                            modifier = Modifier.width(120.dp)
+                        )
+
+                        // Queue button
+                        IconButton(
+                            onClick = { onShowQueue() },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.QueueMusic,
+                                contentDescription = "Show queue",
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }

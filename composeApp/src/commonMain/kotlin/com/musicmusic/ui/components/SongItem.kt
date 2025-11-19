@@ -1,24 +1,23 @@
 package com.musicmusic.ui.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.musicmusic.domain.model.Song
 
 /**
  * Item de lista para mostrar una canción.
- * 
+ *
  * Muestra:
  * - Miniatura de carátula
  * - Título y artista
@@ -33,18 +32,41 @@ fun SongItem(
     onToggleFavorite: () -> Unit,
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isPlaying: Boolean = false
+    isPlaying: Boolean = false,
+    isSelected: Boolean = false,
+    onAddToQueue: (() -> Unit)? = null,
+    onShowAlbum: (() -> Unit)? = null,
+    onShowArtist: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+    onDoubleClick: (() -> Unit)? = null,
+    onSelect: (() -> Unit)? = null,
+    onToggleSelection: ((Boolean) -> Unit)? = null  // Nuevo: para Ctrl+click
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    val backgroundColor = when {
+        isPlaying -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        isSelected -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+        else -> MaterialTheme.colorScheme.surface
+    }
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick),
-        color = if (isPlaying) {
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        } else {
-            MaterialTheme.colorScheme.surface
-        }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        // Single click: selecciona (tiene pequeño delay para detectar double-click)
+                        onSelect?.invoke() ?: onClick()
+                    },
+                    onDoubleTap = {
+                        // Double click: reproduce
+                        onDoubleClick?.invoke() ?: onClick()
+                    }
+                )
+            },
+        color = backgroundColor
     ) {
         Row(
             modifier = Modifier
@@ -116,15 +138,110 @@ fun SongItem(
             }
             
             // Menú de opciones
-            IconButton(
-                onClick = onMoreClick,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.MoreVert,
-                    contentDescription = "More options",
-                    modifier = Modifier.size(20.dp)
-                )
+            Box {
+                IconButton(
+                    onClick = { showMenu = true },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.MoreVert,
+                        contentDescription = "More options",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    // Add to Queue
+                    onAddToQueue?.let { addToQueue ->
+                        DropdownMenuItem(
+                            text = { Text("Add to Queue") },
+                            onClick = {
+                                addToQueue()
+                                showMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.QueueMusic,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
+
+                    // Add to Favorites (alternative to button)
+                    DropdownMenuItem(
+                        text = { Text(if (song.isFavorite) "Remove from Favorites" else "Add to Favorites") },
+                        onClick = {
+                            onToggleFavorite()
+                            showMenu = false
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = if (song.isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                                contentDescription = null
+                            )
+                        }
+                    )
+
+                    // Show Album
+                    onShowAlbum?.let { showAlbum ->
+                        DropdownMenuItem(
+                            text = { Text("Show Album") },
+                            onClick = {
+                                showAlbum()
+                                showMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Album,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
+
+                    // Show Artist
+                    onShowArtist?.let { showArtist ->
+                        DropdownMenuItem(
+                            text = { Text("Show Artist") },
+                            onClick = {
+                                showArtist()
+                                showMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Person,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
+
+                    // Delete from Library
+                    onDelete?.let { delete ->
+                        HorizontalDivider()
+                        DropdownMenuItem(
+                            text = { Text("Delete from Library") },
+                            onClick = {
+                                delete()
+                                showMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = MaterialTheme.colorScheme.error
+                            )
+                        )
+                    }
+                }
             }
         }
     }

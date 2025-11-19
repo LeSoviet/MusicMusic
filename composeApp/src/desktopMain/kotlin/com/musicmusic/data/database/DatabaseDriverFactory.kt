@@ -30,7 +30,7 @@ object DatabaseDriverFactory {
         val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:${databasePath.absolutePath}")
         
         // Verificar si las tablas ya existen
-        val tablesExist = try {
+        val radioTableExists = try {
             driver.executeQuery(
                 null,
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='RadioEntity'",
@@ -42,15 +42,46 @@ object DatabaseDriverFactory {
         } catch (e: Exception) {
             false
         }
-        
-        if (!tablesExist) {
-            println("🔨 Creando schema de base de datos...")
+
+        val favoriteTableExists = try {
+            driver.executeQuery(
+                null,
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='FavoriteEntity'",
+                { cursor ->
+                    cursor.next()
+                },
+                0
+            ).value
+        } catch (e: Exception) {
+            false
+        }
+
+        if (!radioTableExists || !favoriteTableExists) {
+            println("🔨 Creando/migrando schema de base de datos...")
             try {
-                AppDatabase.Schema.create(driver)
-                println("✅ Schema creado exitosamente")
-                
-                // Verificar que se creó
-                val verification = driver.executeQuery(
+                // Si RadioEntity no existe, crear todo el schema
+                if (!radioTableExists) {
+                    AppDatabase.Schema.create(driver)
+                } else {
+                    // Si solo falta FavoriteEntity, crearla manualmente
+                    if (!favoriteTableExists) {
+                        println("🔨 Creando tabla FavoriteEntity...")
+                        driver.execute(
+                            null,
+                            """
+                                CREATE TABLE IF NOT EXISTS FavoriteEntity (
+                                    songId TEXT NOT NULL PRIMARY KEY,
+                                    addedAt INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+                                )
+                            """.trimIndent(),
+                            0
+                        )
+                    }
+                }
+                println("✅ Schema creado/migrado exitosamente")
+
+                // Verificar que se crearon las tablas
+                val radioVerification = driver.executeQuery(
                     null,
                     "SELECT name FROM sqlite_master WHERE type='table' AND name='RadioEntity'",
                     { cursor ->
@@ -58,19 +89,28 @@ object DatabaseDriverFactory {
                     },
                     0
                 ).value
-                
-                if (verification) {
-                    println("✅ Tabla RadioEntity verificada")
+
+                val favoriteVerification = driver.executeQuery(
+                    null,
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='FavoriteEntity'",
+                    { cursor ->
+                        cursor.next()
+                    },
+                    0
+                ).value
+
+                if (radioVerification && favoriteVerification) {
+                    println("✅ Todas las tablas verificadas")
                 } else {
-                    println("❌ ERROR: Tabla RadioEntity NO se creó")
+                    println("❌ ERROR: Algunas tablas no se crearon")
                 }
             } catch (e: Exception) {
-                println("❌ Error al crear schema: ${e.message}")
+                println("❌ Error al crear/migrar schema: ${e.message}")
                 e.printStackTrace()
                 throw e
             }
         } else {
-            println("✅ Tablas ya existen en la base de datos")
+            println("✅ Todas las tablas ya existen en la base de datos")
         }
         
         return driver

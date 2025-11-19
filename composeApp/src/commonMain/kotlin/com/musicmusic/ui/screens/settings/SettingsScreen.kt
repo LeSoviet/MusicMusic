@@ -29,20 +29,24 @@ import org.koin.compose.koinInject
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onChangeMusicFolder: () -> Unit = {},
+    onUpdateLibrary: () -> Unit = {},
+    currentMusicFolder: String? = null,
+    isScanning: Boolean = false
 ) {
     val themeManager = koinInject<ThemeManager>()
     val isDarkMode by themeManager.isDarkMode.collectAsState()
-    
+
     var showKeyboardShortcuts by remember { mutableStateOf(false) }
     
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Configuración") },
+                title = { Text("Settings") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -59,12 +63,12 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Apariencia
-            SettingsSection(title = "Apariencia") {
+            // Appearance
+            SettingsSection(title = "Appearance") {
                 SettingsItem(
                     icon = if (isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
-                    title = "Modo Oscuro",
-                    description = "Cambia entre tema claro y oscuro"
+                    title = "Dark Mode",
+                    description = "Switch between light and dark theme"
                 ) {
                     Switch(
                         checked = isDarkMode,
@@ -72,27 +76,27 @@ fun SettingsScreen(
                     )
                 }
             }
-            
+
             // Audio
             SettingsSection(title = "Audio") {
                 SettingsItem(
                     icon = Icons.Default.MusicNote,
-                    title = "Calidad de Audio",
-                    description = "Máxima calidad disponible"
+                    title = "Audio Quality",
+                    description = "Maximum available quality"
                 ) {
                     Text(
-                        text = "Alta",
+                        text = "High",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
-                
+
                 SettingsItem(
                     icon = Icons.Default.VolumeUp,
-                    title = "Normalización de Volumen",
-                    description = "Ajusta automáticamente el volumen entre canciones"
+                    title = "Volume Normalization",
+                    description = "Automatically adjust volume between songs"
                 ) {
                     Switch(
                         checked = false,
@@ -100,56 +104,63 @@ fun SettingsScreen(
                     )
                 }
             }
-            
-            // Biblioteca
-            SettingsSection(title = "Biblioteca") {
+
+            // Library
+            SettingsSection(title = "Library") {
                 SettingsItem(
                     icon = Icons.Default.Folder,
-                    title = "Carpeta de Música",
-                    description = "Cambiar ubicación de la biblioteca",
-                    onClick = { /* TODO: Abrir selector de carpeta */ }
+                    title = "Music Folder",
+                    description = currentMusicFolder ?: "No folder selected",
+                    onClick = onChangeMusicFolder
                 )
-                
+
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
-                
+
                 SettingsItem(
                     icon = Icons.Default.Refresh,
-                    title = "Actualizar Biblioteca",
-                    description = "Escanear nuevos archivos",
-                    onClick = { /* TODO: Iniciar escaneo */ }
-                )
+                    title = "Update Library",
+                    description = if (isScanning) "Scanning..." else "Scan for new files",
+                    onClick = if (!isScanning) onUpdateLibrary else null
+                ) {
+                    if (isScanning) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    }
+                }
             }
-            
-            // Atajos de teclado
-            SettingsSection(title = "Atajos de Teclado") {
+
+            // Keyboard Shortcuts
+            SettingsSection(title = "Keyboard Shortcuts") {
                 SettingsItem(
                     icon = Icons.Default.Keyboard,
-                    title = "Ver Atajos",
-                    description = "Lista de todos los atajos disponibles",
+                    title = "View Shortcuts",
+                    description = "List of all available shortcuts",
                     onClick = { showKeyboardShortcuts = true }
                 )
             }
-            
-            // Acerca de
-            SettingsSection(title = "Acerca de") {
+
+            // About
+            SettingsSection(title = "About") {
                 SettingsItem(
                     icon = Icons.Default.Info,
                     title = "MusicMusic",
-                    description = "Versión 1.0.0 - Fase 6"
+                    description = "Version 1.0.0 - Phase 6"
                 )
-                
+
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
-                
+
                 SettingsItem(
                     icon = Icons.Default.Code,
-                    title = "Desarrollado con",
+                    title = "Built with",
                     description = "Kotlin Multiplatform + Compose Desktop"
                 )
             }
         }
     }
     
-    // Dialog de atajos de teclado
+    // Keyboard shortcuts dialog
     if (showKeyboardShortcuts) {
         KeyboardShortcutsDialog(
             onDismiss = { showKeyboardShortcuts = false }
@@ -250,7 +261,7 @@ private fun KeyboardShortcutsDialog(
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary
                 )
-                Text("Atajos de Teclado")
+                Text("Keyboard Shortcuts")
             }
         },
         text = {
@@ -288,7 +299,7 @@ private fun KeyboardShortcutsDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cerrar")
+                Text("Close")
             }
         }
     )

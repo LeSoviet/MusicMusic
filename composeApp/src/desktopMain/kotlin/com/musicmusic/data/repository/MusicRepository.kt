@@ -24,7 +24,8 @@ import java.io.File
  */
 class MusicRepository(
     private val fileScanner: FileScanner,
-    private val metadataReader: MetadataReader
+    private val metadataReader: MetadataReader,
+    private val favoritesRepository: FavoritesRepository
 ) {
     
     private val _allSongs = MutableStateFlow<List<Song>>(emptyList())
@@ -107,8 +108,9 @@ class MusicRepository(
                     MetadataNormalizer.findCoverArtInFolder(file)?.absolutePath
                 }
                 
+                val songId = file.absolutePath
                 val song = Song(
-                    id = file.absolutePath,
+                    id = songId,
                     title = metadata.title ?: file.nameWithoutExtension,
                     artist = metadata.artist ?: "Unknown Artist",
                     album = metadata.album ?: "Unknown Album",
@@ -119,7 +121,7 @@ class MusicRepository(
                     duration = metadata.duration,
                     filePath = file.absolutePath,
                     coverArtPath = coverArtPath,
-                    isFavorite = false
+                    isFavorite = favoritesRepository.isFavorite(songId)
                 )
                 newSongs.add(song)
                 
@@ -285,9 +287,13 @@ class MusicRepository(
      * Marca/desmarca una canción como favorita
      */
     fun toggleFavorite(songId: String) {
+        // Toggle en el repositorio de favoritos (persiste en DB)
+        favoritesRepository.toggleFavorite(songId)
+
+        // Actualizar el estado en memoria
         _allSongs.value = _allSongs.value.map { song ->
             if (song.id == songId) {
-                song.copy(isFavorite = !song.isFavorite)
+                song.copy(isFavorite = favoritesRepository.isFavorite(songId))
             } else {
                 song
             }

@@ -64,12 +64,17 @@ val desktopModule = module {
     
     // Repositories
     single {
+        com.musicmusic.data.repository.FavoritesRepository(database = get())
+    }
+
+    single {
         MusicRepository(
             fileScanner = get(),
-            metadataReader = get()
+            metadataReader = get(),
+            favoritesRepository = get()
         )
     }
-    
+
     single {
         RadioRepository(database = get())
     }
@@ -79,7 +84,8 @@ val desktopModule = module {
         PlayerViewModel(
             audioPlayer = get(),
             userPreferences = get(),
-            viewModelScope = get()
+            viewModelScope = get(),
+            musicRepository = get()
         )
     }
     

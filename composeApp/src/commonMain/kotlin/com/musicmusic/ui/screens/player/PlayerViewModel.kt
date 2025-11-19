@@ -67,6 +67,8 @@ expect class PlayerViewModel {
     fun getFormattedPosition(): String
     fun getFormattedDuration(): String
     fun getProgress(): Float
-    
+
+    fun toggleFavorite(songId: String)
+
     fun onCleared()
 }
