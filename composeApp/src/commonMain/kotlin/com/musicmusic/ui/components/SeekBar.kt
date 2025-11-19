@@ -1,8 +1,10 @@
 package com.musicmusic.ui.components
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -12,16 +14,18 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.unit.dp
 
 /**
  * Barra de progreso interactiva para reproducción de audio.
  * 
  * Características:
- * - Arrastre para buscar posición
- * - Click para saltar a posición
+ * - Arrastre horizontal fluido para buscar posición
+ * - Click directo para saltar a posición
  * - Indicador visual del progreso
  * - Hover effect premium
+ * - Alta responsividad
  * 
  * @param progress Progreso actual (0.0 a 1.0)
  * @param onSeekStart Callback cuando inicia el seek
@@ -46,8 +50,9 @@ fun SeekBar(
     thumbColor: Color = MaterialTheme.colorScheme.primary
 ) {
     var isDragging by remember { mutableStateOf(false) }
-    var isHovered by remember { mutableStateOf(false) }
     var dragProgress by remember { mutableStateOf(progress) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
     
     // Sincronizar con el progreso externo cuando no se está arrastrando
     LaunchedEffect(progress) {
@@ -57,45 +62,60 @@ fun SeekBar(
     }
     
     val currentProgress = if (isDragging) dragProgress else progress
-    val barHeight = if (isDragging || isHovered) 6.dp else 4.dp
-    val thumbRadius = if (isDragging || isHovered) 8.dp else 6.dp
+    val showThumb = isDragging || isHovered
+    val barHeight = if (showThumb) 6.dp else 4.dp
+    val thumbRadius = if (isDragging) 10.dp else if (isHovered) 8.dp else 6.dp
     
     Box(
         modifier = modifier
-            .height(32.dp)
+            .height(48.dp) // Área clickeable más grande
             .fillMaxWidth()
+            .hoverable(interactionSource = interactionSource)
             .pointerInput(enabled) {
                 if (enabled) {
-                    detectTapGestures { offset ->
-                        val newProgress = (offset.x / size.width).coerceIn(0f, 1f)
-                        onSeekStart(newProgress)
-                        onSeekChange(newProgress)
-                        onSeekEnd()
-                    }
-                }
-            }
-            .pointerInput(enabled) {
-                if (enabled) {
-                    detectDragGestures(
+                    detectHorizontalDragGestures(
                         onDragStart = { offset ->
                             isDragging = true
                             val newProgress = (offset.x / size.width).coerceIn(0f, 1f)
                             dragProgress = newProgress
                             onSeekStart(newProgress)
+                            onSeekChange(newProgress)
                         },
                         onDragEnd = {
-                            isDragging = false
                             onSeekEnd()
+                            isDragging = false
                         },
                         onDragCancel = {
-                            isDragging = false
                             onSeekEnd()
+                            isDragging = false
+                        },
+                        onHorizontalDrag = { change, _ ->
+                            change.consume()
+                            val newProgress = (change.position.x / size.width).coerceIn(0f, 1f)
+                            dragProgress = newProgress
+                            onSeekChange(newProgress)
                         }
-                    ) { change, _ ->
-                        change.consume()
-                        val newProgress = (change.position.x / size.width).coerceIn(0f, 1f)
-                        dragProgress = newProgress
-                        onSeekChange(newProgress)
+                    )
+                }
+            }
+            .pointerInput(enabled) {
+                if (enabled) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val position = event.changes.first().position
+                            
+                            // Solo procesar clicks (no drags)
+                            if (event.changes.first().pressed && 
+                                event.changes.first().previousPressed == false &&
+                                !isDragging) {
+                                val newProgress = (position.x / size.width).coerceIn(0f, 1f)
+                                onSeekStart(newProgress)
+                                onSeekChange(newProgress)
+                                onSeekEnd()
+                                event.changes.forEach { it.consume() }
+                            }
+                        }
                     }
                 }
             },
@@ -131,18 +151,18 @@ fun SeekBar(
                 )
             }
             
-            // Indicador (thumb) - solo visible si está habilitado
-            if (enabled && (isDragging || isHovered)) {
-                drawCircle(
-                    color = thumbColor,
-                    radius = thumbRadiusPx,
-                    center = Offset(progressX, centerY)
-                )
-                
+            // Indicador (thumb) - visible cuando se arrastra o hover
+            if (enabled && showThumb) {
                 // Sombra del thumb
                 drawCircle(
                     color = thumbColor.copy(alpha = 0.2f),
-                    radius = thumbRadiusPx * 1.5f,
+                    radius = thumbRadiusPx * 2f,
+                    center = Offset(progressX, centerY)
+                )
+                
+                drawCircle(
+                    color = thumbColor,
+                    radius = thumbRadiusPx,
                     center = Offset(progressX, centerY)
                 )
             }

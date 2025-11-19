@@ -236,15 +236,18 @@ actual class PlayerViewModel(
     private var volumeBeforeMute = 0.5f
     
     actual fun toggleMute() {
+        println("🔇 toggleMute llamado - isMuted actual: $isMuted")
         viewModelScope.launch {
             if (isMuted) {
                 // Unmute: restaurar volumen anterior
+                println("🔊 Desmutear - restaurando volumen: $volumeBeforeMute")
                 audioPlayer.setMute(false)
                 audioPlayer.setVolume(volumeBeforeMute)
                 isMuted = false
             } else {
                 // Mute: guardar volumen actual y silenciar
                 volumeBeforeMute = volume.value
+                println("🔇 Mutear - guardando volumen: $volumeBeforeMute")
                 audioPlayer.setMute(true)
                 isMuted = true
             }

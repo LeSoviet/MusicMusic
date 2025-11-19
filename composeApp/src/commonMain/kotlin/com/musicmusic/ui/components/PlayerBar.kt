@@ -249,13 +249,24 @@ fun PlayerBar(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Volume control
-                        Icon(
-                            imageVector = Icons.Rounded.VolumeUp,
-                            contentDescription = "Volume",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
+                        // Volume control with mute button
+                        IconButton(
+                            onClick = { playerViewModel.toggleMute() },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            val volumeIcon = when {
+                                volume == 0f -> Icons.Rounded.VolumeOff
+                                volume < 0.3f -> Icons.Rounded.VolumeMute
+                                volume < 0.7f -> Icons.Rounded.VolumeDown
+                                else -> Icons.Rounded.VolumeUp
+                            }
+                            Icon(
+                                imageVector = volumeIcon,
+                                contentDescription = "Toggle mute",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                         Slider(
                             value = volume,
                             onValueChange = { playerViewModel.setVolume(it) },

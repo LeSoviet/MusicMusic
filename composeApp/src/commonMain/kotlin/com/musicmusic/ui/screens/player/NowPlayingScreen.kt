@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -34,30 +33,31 @@ fun NowPlayingScreen(
         topBar = { NowPlayingTopBar(onBack = onBack) }
     ) { paddingValues ->
 
-        // 🟢 CONTENEDOR RESPONSIVO
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clipToBounds(), // oculta lo que no entre si se achica la ventana
-            contentAlignment = Alignment.Center
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize()
         ) {
+            val isCompact = maxWidth < 1280.dp || maxHeight < 720.dp
+            val coverSize = if (isCompact) 180.dp else 280.dp
+            val verticalSpacing = if (isCompact) 12.dp else 24.dp
+            val horizontalPadding = if (isCompact) 16.dp else 32.dp
+            
             Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.8f) // Ocupa el 80% del ancho disponible
-                    .fillMaxHeight()
+                    .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 20.dp)
-                    .padding(bottom = 12.dp),
+                    .padding(horizontal = horizontalPadding)
+                    .padding(vertical = if (isCompact) 12.dp else 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.spacedBy(verticalSpacing, Alignment.CenterVertically)
             ) {
+                // Spacer flexible arriba
+                Spacer(modifier = Modifier.weight(1f, fill = false))
+                
                 // Carátula
                 AlbumCoverWithBlur(
                     coverArtPath = currentSong?.coverArtPath,
-                    coverSize = 220.dp
+                    coverSize = coverSize
                 )
-
-                Spacer(modifier = Modifier.height(12.dp))
 
                 // Info canción
                 SongInfo(
@@ -65,8 +65,6 @@ fun NowPlayingScreen(
                     artist = currentSong?.getDisplayArtist() ?: "",
                     album = currentSong?.album ?: ""
                 )
-
-                Spacer(modifier = Modifier.height(12.dp))
 
                 // Barra de progreso
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -105,11 +103,11 @@ fun NowPlayingScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
                 // Barra de controles unificada
                 Box(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = if (isCompact) 8.dp else 16.dp)
                 ) {
                     // Controles principales centrados
                     Row(
@@ -117,30 +115,32 @@ fun NowPlayingScreen(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Playlist button (non-functional for now)
-                        IconButton(
-                            onClick = { /* TODO: Implement playlist functionality */ },
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.PlaylistPlay,
-                                contentDescription = "Playlist",
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        if (!isCompact) {
+                            // Playlist button (solo en modo normal)
+                            IconButton(
+                                onClick = { /* TODO: Implement playlist functionality */ },
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.PlaylistPlay,
+                                    contentDescription = "Playlist",
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
 
                         // Shuffle button
                         IconButton(
                             onClick = { playerViewModel.toggleShuffle() },
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(if (isCompact) 36.dp else 40.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Shuffle,
                                 contentDescription = "Shuffle",
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(if (isCompact) 18.dp else 20.dp),
                                 tint = if (isShuffleEnabled) {
                                     MaterialTheme.colorScheme.primary
                                 } else {
@@ -149,26 +149,26 @@ fun NowPlayingScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(if (isCompact) 4.dp else 8.dp))
 
                         // Previous button
                         IconButton(
                             onClick = { playerViewModel.previous() },
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(if (isCompact) 40.dp else 48.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.SkipPrevious,
                                 contentDescription = "Previous",
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(if (isCompact) 24.dp else 28.dp)
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(if (isCompact) 8.dp else 16.dp))
 
                         // Play/Pause button (grande y prominente)
                         FilledIconButton(
                             onClick = { playerViewModel.togglePlayPause() },
-                            modifier = Modifier.size(56.dp),
+                            modifier = Modifier.size(if (isCompact) 48.dp else 56.dp),
                             colors = IconButtonDefaults.filledIconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.primary
                             )
@@ -181,31 +181,31 @@ fun NowPlayingScreen(
                             Icon(
                                 imageVector = icon,
                                 contentDescription = if (playbackState == PlaybackState.PLAYING) "Pause" else "Play",
-                                modifier = Modifier.size(32.dp),
+                                modifier = Modifier.size(if (isCompact) 28.dp else 32.dp),
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(if (isCompact) 8.dp else 16.dp))
 
                         // Next button
                         IconButton(
                             onClick = { playerViewModel.next() },
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(if (isCompact) 40.dp else 48.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.SkipNext,
                                 contentDescription = "Next",
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(if (isCompact) 24.dp else 28.dp)
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(if (isCompact) 4.dp else 8.dp))
 
                         // Repeat button
                         IconButton(
                             onClick = { playerViewModel.toggleRepeatMode() },
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(if (isCompact) 36.dp else 40.dp)
                         ) {
                             val icon = when (repeatMode) {
                                 RepeatMode.ONE -> Icons.Rounded.RepeatOne
@@ -215,7 +215,7 @@ fun NowPlayingScreen(
                             Icon(
                                 imageVector = icon,
                                 contentDescription = "Repeat",
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(if (isCompact) 18.dp else 20.dp),
                                 tint = if (repeatMode != RepeatMode.OFF) {
                                     MaterialTheme.colorScheme.primary
                                 } else {
@@ -224,69 +224,87 @@ fun NowPlayingScreen(
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(8.dp))
+                        if (!isCompact) {
+                            Spacer(modifier = Modifier.width(8.dp))
 
-                        // Favorite button
-                        IconButton(
-                            onClick = {
-                                currentSong?.let { song ->
-                                    playerViewModel.toggleFavorite(song.id)
-                                }
-                            },
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (currentSong?.isFavorite == true) {
-                                    Icons.Rounded.Favorite
-                                } else {
-                                    Icons.Rounded.FavoriteBorder
+                            // Favorite button (solo en modo normal)
+                            IconButton(
+                                onClick = {
+                                    currentSong?.let { song ->
+                                        playerViewModel.toggleFavorite(song.id)
+                                    }
                                 },
-                                contentDescription = "Toggle favorite",
-                                modifier = Modifier.size(20.dp),
-                                tint = if (currentSong?.isFavorite == true) {
-                                    MaterialTheme.colorScheme.error
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                }
-                            )
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (currentSong?.isFavorite == true) {
+                                        Icons.Rounded.Favorite
+                                    } else {
+                                        Icons.Rounded.FavoriteBorder
+                                    },
+                                    contentDescription = "Toggle favorite",
+                                    modifier = Modifier.size(20.dp),
+                                    tint = if (currentSong?.isFavorite == true) {
+                                        MaterialTheme.colorScheme.error
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                )
+                            }
                         }
                     }
-
+                    
                     // Controles secundarios (volumen y queue) a la derecha
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        // Volume control
-                        Icon(
-                            imageVector = Icons.Rounded.VolumeUp,
-                            contentDescription = "Volume",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Slider(
-                            value = volume,
-                            onValueChange = { playerViewModel.setVolume(it) },
-                            modifier = Modifier.width(120.dp)
-                        )
-
-                        // Queue button
-                        IconButton(
-                            onClick = { onShowQueue() },
-                            modifier = Modifier.size(40.dp)
+                    if (!isCompact) {
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Rounded.QueueMusic,
-                                contentDescription = "Show queue",
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            // Volume control with mute button
+                            IconButton(
+                                onClick = { playerViewModel.toggleMute() },
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                val volumeIcon = when {
+                                    volume == 0f -> Icons.Rounded.VolumeOff
+                                    volume < 0.3f -> Icons.Rounded.VolumeMute
+                                    volume < 0.7f -> Icons.Rounded.VolumeDown
+                                    else -> Icons.Rounded.VolumeUp
+                                }
+                                Icon(
+                                    imageVector = volumeIcon,
+                                    contentDescription = "Toggle mute",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Slider(
+                                value = volume,
+                                onValueChange = { playerViewModel.setVolume(it) },
+                                modifier = Modifier.width(120.dp)
                             )
+
+                            // Queue button
+                            IconButton(
+                                onClick = { onShowQueue() },
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.QueueMusic,
+                                    contentDescription = "Show queue",
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
+                
+                // Spacer flexible abajo
+                Spacer(modifier = Modifier.weight(1f, fill = false))
             }
         }
     }
