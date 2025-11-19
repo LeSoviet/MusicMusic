@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.musicmusic.domain.model.PlaybackState
 import com.musicmusic.domain.model.RepeatMode
@@ -47,19 +49,15 @@ fun PlayerControls(
     showSecondaryControls: Boolean = true
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentWidth(Alignment.CenterHorizontally),
-        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (showSecondaryControls) {
             // Shuffle button
             IconButton(
                 onClick = onShuffle,
-                modifier = Modifier
-                    .size(40.dp)
-                    .weight(1f, fill = false)
+                modifier = Modifier.size(40.dp)
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Shuffle,
@@ -72,14 +70,14 @@ fun PlayerControls(
                     }
                 )
             }
+            
+            Spacer(modifier = Modifier.width(8.dp))
         }
         
         // Previous button
         IconButton(
             onClick = onPrevious,
-            modifier = Modifier
-                .size(48.dp)
-                .weight(1f, fill = false)
+            modifier = Modifier.size(48.dp)
         ) {
             Icon(
                 imageVector = Icons.Rounded.SkipPrevious,
@@ -88,12 +86,12 @@ fun PlayerControls(
             )
         }
         
+        Spacer(modifier = Modifier.width(16.dp))
+        
         // Play/Pause button (grande y prominente)
         FilledIconButton(
             onClick = onPlayPause,
-            modifier = Modifier
-                .size(56.dp)
-                .weight(1f, fill = false),
+            modifier = Modifier.size(56.dp),
             colors = IconButtonDefaults.filledIconButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary
             )
@@ -111,12 +109,12 @@ fun PlayerControls(
             )
         }
         
+        Spacer(modifier = Modifier.width(16.dp))
+        
         // Next button
         IconButton(
             onClick = onNext,
-            modifier = Modifier
-                .size(48.dp)
-                .weight(1f, fill = false)
+            modifier = Modifier.size(48.dp)
         ) {
             Icon(
                 imageVector = Icons.Rounded.SkipNext,
@@ -126,12 +124,12 @@ fun PlayerControls(
         }
         
         if (showSecondaryControls) {
+            Spacer(modifier = Modifier.width(8.dp))
+            
             // Repeat button
             IconButton(
                 onClick = onRepeat,
-                modifier = Modifier
-                    .size(40.dp)
-                    .weight(1f, fill = false)
+                modifier = Modifier.size(40.dp)
             ) {
                 val icon = when (repeatMode) {
                     RepeatMode.ONE -> Icons.Rounded.RepeatOne
