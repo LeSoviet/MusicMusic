@@ -1,0 +1,58 @@
+-- Tabla para almacenar las radios
+CREATE TABLE IF NOT EXISTS RadioEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    genre TEXT,
+    country TEXT,
+    logoUrl TEXT,
+    description TEXT,
+    bitrate INTEGER,
+    isFavorite INTEGER NOT NULL DEFAULT 0,
+    tags TEXT NOT NULL DEFAULT ''
+);
+
+-- Inserts
+insertRadio:
+INSERT OR REPLACE INTO RadioEntity(id, name, url, genre, country, logoUrl, description, bitrate, isFavorite, tags)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+-- Queries
+selectAll:
+SELECT * FROM RadioEntity;
+
+selectById:
+SELECT * FROM RadioEntity WHERE id = ?;
+
+selectByGenre:
+SELECT * FROM RadioEntity WHERE genre = ? COLLATE NOCASE;
+
+selectByCountry:
+SELECT * FROM RadioEntity WHERE country = ? COLLATE NOCASE;
+
+selectFavorites:
+SELECT * FROM RadioEntity WHERE isFavorite = 1;
+
+searchRadios:
+SELECT * FROM RadioEntity 
+WHERE name LIKE '%' || ? || '%' COLLATE NOCASE
+   OR genre LIKE '%' || ? || '%' COLLATE NOCASE
+   OR country LIKE '%' || ? || '%' COLLATE NOCASE
+   OR tags LIKE '%' || ? || '%' COLLATE NOCASE;
+
+getAllGenres:
+SELECT DISTINCT genre FROM RadioEntity WHERE genre IS NOT NULL ORDER BY genre;
+
+getAllCountries:
+SELECT DISTINCT country FROM RadioEntity WHERE country IS NOT NULL ORDER BY country;
+
+-- Updates
+updateFavorite:
+UPDATE RadioEntity SET isFavorite = ? WHERE id = ?;
+
+-- Deletes
+deleteById:
+DELETE FROM RadioEntity WHERE id = ?;
+
+deleteAll:
+DELETE FROM RadioEntity;

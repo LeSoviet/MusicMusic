@@ -1,0 +1,70 @@
+# Build artifacts
+.gradle/
+build/
+*/build/
+**/build/
+buildSrc/build/
+*.iml
+
+# Local configuration
+local.properties
+gradle.properties.local
+
+# IDE
+.idea/
+*.iws
+*.ipr
+*.iml
+.vscode/
+*.code-workspace
+
+# macOS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Compose
+.compose/
+
+# Logs
+*.log
+
+# User data
+.musicmusic/
+*.db
+*.db-journal
+
+# VLC
+vlc-*.zip
+vlc/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Package files
+*.dmg
+*.msi
+*.deb
+*.exe
+*.rpm
+*.pkg
+
+# Native
+*.so
+*.dylib
+*.dll
+
+# Kotlin Native
+.konan/
+
+# Secrets
+secrets.properties
+api_keys.txt

@@ -1,0 +1,204 @@
+{
+  "radios": [
+    {
+      "id": "radio-001",
+      "name": "Jazz FM",
+      "url": "https://jazzradio.ice.infomaniak.ch/jazzradio-high.mp3",
+      "genre": "Jazz",
+      "country": "Switzerland",
+      "description": "The best jazz music 24/7",
+      "bitrate": 128,
+      "tags": ["jazz", "smooth", "relaxing"]
+    },
+    {
+      "id": "radio-002",
+      "name": "Classic Rock FM",
+      "url": "http://stream.rockradio.com:80/classicrock",
+      "genre": "Rock",
+      "country": "USA",
+      "description": "Classic rock hits from the 60s, 70s, and 80s",
+      "bitrate": 128,
+      "tags": ["rock", "classic", "guitar"]
+    },
+    {
+      "id": "radio-003",
+      "name": "Smooth Jazz 24/7",
+      "url": "http://smoothjazz.cdnstream1.com:80/smoothjazz",
+      "genre": "Jazz",
+      "country": "USA",
+      "description": "Smooth jazz for work and relaxation",
+      "bitrate": 128,
+      "tags": ["jazz", "smooth", "instrumental"]
+    },
+    {
+      "id": "radio-004",
+      "name": "Electronic Beats",
+      "url": "http://stream.electronicbeats.net:80/live",
+      "genre": "Electronic",
+      "country": "Germany",
+      "description": "Electronic, house, and techno music",
+      "bitrate": 192,
+      "tags": ["electronic", "house", "techno", "edm"]
+    },
+    {
+      "id": "radio-005",
+      "name": "Classical Music 24",
+      "url": "http://stream.classicalradio.com:80/classical",
+      "genre": "Classical",
+      "country": "Austria",
+      "description": "Classical music from baroque to contemporary",
+      "bitrate": 128,
+      "tags": ["classical", "orchestra", "piano"]
+    },
+    {
+      "id": "radio-006",
+      "name": "Hip Hop Nation",
+      "url": "http://stream.hiphop.com:80/hiphop",
+      "genre": "Hip Hop",
+      "country": "USA",
+      "description": "The hottest hip hop and rap tracks",
+      "bitrate": 128,
+      "tags": ["hiphop", "rap", "urban"]
+    },
+    {
+      "id": "radio-007",
+      "name": "Country Roads Radio",
+      "url": "http://stream.countryroads.com:80/country",
+      "genre": "Country",
+      "country": "USA",
+      "description": "Contemporary and classic country music",
+      "bitrate": 128,
+      "tags": ["country", "folk", "acoustic"]
+    },
+    {
+      "id": "radio-008",
+      "name": "Latin Beats",
+      "url": "http://stream.latinbeats.com:80/latin",
+      "genre": "Latin",
+      "country": "Mexico",
+      "description": "Salsa, reggaeton, and Latin pop",
+      "bitrate": 128,
+      "tags": ["latin", "salsa", "reggaeton", "spanish"]
+    },
+    {
+      "id": "radio-009",
+      "name": "Blues Radio",
+      "url": "http://stream.bluesradio.com:80/blues",
+      "genre": "Blues",
+      "country": "USA",
+      "description": "The best blues from Chicago to Delta",
+      "bitrate": 128,
+      "tags": ["blues", "guitar", "soul"]
+    },
+    {
+      "id": "radio-010",
+      "name": "Reggae Vibes",
+      "url": "http://stream.reggaevibes.com:80/reggae",
+      "genre": "Reggae",
+      "country": "Jamaica",
+      "description": "Reggae, ska, and dancehall music",
+      "bitrate": 128,
+      "tags": ["reggae", "ska", "dancehall", "caribbean"]
+    },
+    {
+      "id": "radio-011",
+      "name": "Indie Rock Station",
+      "url": "http://stream.indierock.com:80/indie",
+      "genre": "Indie",
+      "country": "UK",
+      "description": "Independent and alternative rock",
+      "bitrate": 192,
+      "tags": ["indie", "alternative", "rock"]
+    },
+    {
+      "id": "radio-012",
+      "name": "Metal Radio",
+      "url": "http://stream.metalradio.com:80/metal",
+      "genre": "Metal",
+      "country": "Sweden",
+      "description": "Heavy metal, thrash, and death metal",
+      "bitrate": 192,
+      "tags": ["metal", "heavy", "rock"]
+    },
+    {
+      "id": "radio-013",
+      "name": "Ambient Soundscapes",
+      "url": "http://stream.ambientradio.com:80/ambient",
+      "genre": "Ambient",
+      "country": "Iceland",
+      "description": "Relaxing ambient and atmospheric music",
+      "bitrate": 128,
+      "tags": ["ambient", "relaxing", "instrumental", "chill"]
+    },
+    {
+      "id": "radio-014",
+      "name": "Pop Hits Radio",
+      "url": "http://stream.pophits.com:80/pop",
+      "genre": "Pop",
+      "country": "USA",
+      "description": "Today's top pop hits",
+      "bitrate": 128,
+      "tags": ["pop", "chart", "mainstream"]
+    },
+    {
+      "id": "radio-015",
+      "name": "World Music Radio",
+      "url": "http://stream.worldmusic.com:80/world",
+      "genre": "World",
+      "country": "International",
+      "description": "Music from around the globe",
+      "bitrate": 128,
+      "tags": ["world", "ethnic", "traditional"]
+    },
+    {
+      "id": "radio-016",
+      "name": "70s Disco",
+      "url": "http://stream.disco70s.com:80/disco",
+      "genre": "Disco",
+      "country": "USA",
+      "description": "Disco hits from the 1970s",
+      "bitrate": 128,
+      "tags": ["disco", "70s", "dance", "funk"]
+    },
+    {
+      "id": "radio-017",
+      "name": "80s Hits",
+      "url": "http://stream.80shits.com:80/80s",
+      "genre": "80s",
+      "country": "USA",
+      "description": "The best of the 1980s",
+      "bitrate": 128,
+      "tags": ["80s", "retro", "pop", "rock"]
+    },
+    {
+      "id": "radio-018",
+      "name": "90s Alternative",
+      "url": "http://stream.90salt.com:80/90s",
+      "genre": "Alternative",
+      "country": "USA",
+      "description": "90s alternative and grunge",
+      "bitrate": 128,
+      "tags": ["90s", "grunge", "alternative"]
+    },
+    {
+      "id": "radio-019",
+      "name": "Folk & Acoustic",
+      "url": "http://stream.folkradio.com:80/folk",
+      "genre": "Folk",
+      "country": "Ireland",
+      "description": "Folk, bluegrass, and acoustic music",
+      "bitrate": 128,
+      "tags": ["folk", "acoustic", "bluegrass"]
+    },
+    {
+      "id": "radio-020",
+      "name": "K-Pop Radio",
+      "url": "http://stream.kpopradio.com:80/kpop",
+      "genre": "K-Pop",
+      "country": "South Korea",
+      "description": "Korean pop music 24/7",
+      "bitrate": 192,
+      "tags": ["kpop", "korean", "pop", "asian"]
+    }
+  ]
+}
