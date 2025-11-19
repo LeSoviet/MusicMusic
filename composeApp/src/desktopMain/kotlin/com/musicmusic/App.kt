@@ -8,7 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.unit.dp
+import com.musicmusic.domain.error.ErrorHandler
 import com.musicmusic.ui.animation.AppAnimations
+import com.musicmusic.ui.components.ErrorSnackbar
 import com.musicmusic.ui.components.PlayerBar
 import com.musicmusic.ui.keyboard.KeyboardShortcuts
 import com.musicmusic.ui.screens.library.LibraryScreen
@@ -39,9 +41,21 @@ fun App() {
     val themeManager = koinInject<ThemeManager>()
     val playerViewModel = koinInject<PlayerViewModel>()
     val userPreferences = koinInject<UserPreferences>()
+    val errorHandler = koinInject<ErrorHandler>()
     val isDarkMode by themeManager.isDarkMode.collectAsState()
     val currentMusicFolder by userPreferences.musicFolderPath.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
+    
+    // Observar errores del ErrorHandler
+    val latestError = errorHandler.errors.collectAsState(initial = null).value
+    var displayedError by remember { mutableStateOf(latestError) }
+    
+    // Actualizar el error mostrado cuando cambie
+    LaunchedEffect(latestError) {
+        if (latestError != null) {
+            displayedError = latestError
+        }
+    }
 
     MusicMusicTheme(darkTheme = isDarkMode) {
         var currentScreen by remember { mutableStateOf(Screen.LIBRARY) }
@@ -233,8 +247,28 @@ fun App() {
                                 .fillMaxWidth()
                                 .align(androidx.compose.ui.Alignment.BottomCenter)
                         ) {
-                            PlayerBar(
-                                onClick = { currentScreen = Screen.NOW_PLAYING }
+                            Column {
+                                // Snackbar de errores sobre el PlayerBar
+                                ErrorSnackbar(
+                                    error = displayedError,
+                                    onDismiss = { displayedError = null }
+                                )
+                                
+                                PlayerBar(
+                                    onClick = { currentScreen = Screen.NOW_PLAYING }
+                                )
+                            }
+                        }
+                    } else {
+                        // En NOW_PLAYING, mostrar errores en la parte inferior
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(androidx.compose.ui.Alignment.BottomCenter)
+                        ) {
+                            ErrorSnackbar(
+                                error = displayedError,
+                                onDismiss = { displayedError = null }
                             )
                         }
                     }

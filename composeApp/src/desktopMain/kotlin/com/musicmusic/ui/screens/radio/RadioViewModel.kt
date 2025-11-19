@@ -7,6 +7,9 @@ import com.musicmusic.data.repository.RadioRepository
 import com.musicmusic.domain.model.Radio
 import com.musicmusic.ui.screens.player.PlayerViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,12 +17,16 @@ import kotlinx.coroutines.launch
 
 /**
  * ViewModel para la pantalla de radios.
+ * 
+ * Cada instancia tiene su propio CoroutineScope que se limpia al destruir el ViewModel.
  */
 class RadioViewModel(
     private val radioRepository: RadioRepository,
-    private val playerViewModel: PlayerViewModel,
-    private val viewModelScope: CoroutineScope
+    private val playerViewModel: PlayerViewModel
 ) {
+    
+    // ViewModel-specific coroutine scope
+    private val viewModelScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
     // Estado de carga
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -202,5 +209,12 @@ class RadioViewModel(
         _selectedGenre.value = null
         _selectedCountry.value = null
         applyFilters()
+    }
+    
+    // ========== Lifecycle ==========
+    
+    fun onCleared() {
+        // Cancelar todas las coroutines del ViewModel
+        viewModelScope.cancel()
     }
 }

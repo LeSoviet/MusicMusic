@@ -8,14 +8,12 @@ import com.musicmusic.data.repository.MusicRepository
 import com.musicmusic.data.repository.RadioRepository
 import com.musicmusic.database.AppDatabase
 import com.musicmusic.domain.audio.AudioPlayer
+import com.musicmusic.domain.error.ErrorHandler
 import com.musicmusic.files.FileScanner
 import com.musicmusic.files.MetadataReader
 import com.musicmusic.ui.screens.library.LibraryViewModel
 import com.musicmusic.ui.screens.player.PlayerViewModel
 import com.musicmusic.ui.theme.ThemeManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -23,11 +21,6 @@ import org.koin.dsl.module
  * Módulo Koin para Desktop (audio, archivos, etc.)
  */
 val desktopModule = module {
-    
-    // Scope para operaciones de background (I/O, database, preferences)
-    single<CoroutineScope> {
-        CoroutineScope(Dispatchers.IO + SupervisorJob())
-    }
     
     // User Preferences
     single {
@@ -40,10 +33,12 @@ val desktopModule = module {
     
     // Theme Manager
     single {
-        ThemeManager(
-            userPreferences = get(),
-            scope = get()
-        )
+        ThemeManager(userPreferences = get())
+    }
+    
+    // Error Handler
+    single {
+        ErrorHandler()
     }
     
     // Base de datos
@@ -53,7 +48,7 @@ val desktopModule = module {
     
     // Audio Player
     single<AudioPlayer> {
-        VlcjAudioPlayer(scope = get())
+        VlcjAudioPlayer(errorHandler = get())
     }
     
     // File Scanner y Metadata Reader
@@ -71,20 +66,23 @@ val desktopModule = module {
         MusicRepository(
             fileScanner = get(),
             metadataReader = get(),
-            favoritesRepository = get()
+            favoritesRepository = get(),
+            errorHandler = get()
         )
     }
 
     single {
-        RadioRepository(database = get())
+        RadioRepository(
+            database = get(),
+            errorHandler = get()
+        )
     }
     
-    // ViewModels
+    // ViewModels (cada uno con su propio CoroutineScope)
     single {
         PlayerViewModel(
             audioPlayer = get(),
             userPreferences = get(),
-            viewModelScope = get(),
             musicRepository = get()
         )
     }
@@ -92,16 +90,14 @@ val desktopModule = module {
     single<LibraryViewModel> {
         LibraryViewModel(
             musicRepository = get(),
-            playerViewModel = get(),
-            viewModelScope = get()
+            playerViewModel = get()
         )
     }
     
     single {
         com.musicmusic.ui.screens.radio.RadioViewModel(
             radioRepository = get(),
-            playerViewModel = get(),
-            viewModelScope = get()
+            playerViewModel = get()
         )
     }
 }

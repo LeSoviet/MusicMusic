@@ -6,6 +6,9 @@ import com.musicmusic.domain.model.Artist
 import com.musicmusic.domain.model.Song
 import com.musicmusic.ui.screens.player.PlayerViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -17,12 +20,16 @@ import kotlinx.coroutines.launch
  * - Búsqueda y filtrado
  * - Escaneo de directorios
  * - Reproducción desde biblioteca
+ * 
+ * Cada instancia tiene su propio CoroutineScope que se limpia al destruir el ViewModel.
  */
 class LibraryViewModel(
     private val musicRepository: MusicRepository,
-    private val playerViewModel: PlayerViewModel,
-    private val viewModelScope: CoroutineScope
+    private val playerViewModel: PlayerViewModel
 ) {
+    
+    // ViewModel-specific coroutine scope
+    private val viewModelScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
     
     // ========== Estados observables ==========
     
@@ -217,6 +224,13 @@ class LibraryViewModel(
     
     fun clearLibrary() {
         musicRepository.clearLibrary()
+    }
+    
+    // ========== Lifecycle ==========
+    
+    fun onCleared() {
+        // Cancelar todas las coroutines del ViewModel
+        viewModelScope.cancel()
     }
 }
 

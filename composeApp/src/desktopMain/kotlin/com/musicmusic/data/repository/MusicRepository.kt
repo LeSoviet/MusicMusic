@@ -1,5 +1,7 @@
 package com.musicmusic.data.repository
 
+import com.musicmusic.domain.error.AppError
+import com.musicmusic.domain.error.ErrorHandler
 import com.musicmusic.domain.model.Album
 import com.musicmusic.domain.model.Artist
 import com.musicmusic.domain.model.Song
@@ -25,7 +27,8 @@ import java.io.File
 class MusicRepository(
     private val fileScanner: FileScanner,
     private val metadataReader: MetadataReader,
-    private val favoritesRepository: FavoritesRepository
+    private val favoritesRepository: FavoritesRepository,
+    private val errorHandler: ErrorHandler
 ) {
     
     private val _allSongs = MutableStateFlow<List<Song>>(emptyList())
@@ -52,14 +55,40 @@ class MusicRepository(
         
         try {
             val directory = File(directoryPath)
-            if (!directory.exists() || !directory.isDirectory) {
-                throw IllegalArgumentException("Invalid directory: $directoryPath")
+            if (!directory.exists()) {
+                errorHandler.handleError(
+                    AppError.FileNotFound(directoryPath, "Directory does not exist")
+                )
+                return@withContext
+            }
+            
+            if (!directory.isDirectory) {
+                errorHandler.handleError(
+                    AppError.FileNotFound(directoryPath, "Path is not a directory")
+                )
+                return@withContext
+            }
+            
+            if (!directory.canRead()) {
+                errorHandler.handleError(
+                    AppError.PermissionError(directoryPath, "No read permission")
+                )
+                return@withContext
             }
             
             // Escanear archivos
             val audioFiles = fileScanner.findAudioFiles(directory)
+            
+            if (audioFiles.isEmpty()) {
+                errorHandler.handleError(
+                    AppError.ScanError(directoryPath, "No audio files found in directory")
+                )
+            }
+            
             processFiles(audioFiles)
             
+        } catch (e: Exception) {
+            errorHandler.handleException(e, directoryPath)
         } finally {
             _isScanning.value = false
             _scanProgress.value = 1f
@@ -125,9 +154,10 @@ class MusicRepository(
                 )
                 newSongs.add(song)
                 
-                println("✅ ${file.name} -> ${song.artist} - ${song.title}")
             } catch (e: Exception) {
-                println("⚠️ Error processing ${file.name}: ${e.message}")
+                errorHandler.handleError(
+                    AppError.MetadataError(file.name, e.message ?: "Failed to read metadata")
+                )
             }
             
             _scanProgress.value = (index + 1).toFloat() / totalFiles

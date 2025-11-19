@@ -9,6 +9,9 @@ import com.musicmusic.domain.model.PlaybackState
 import com.musicmusic.domain.model.RepeatMode
 import com.musicmusic.domain.model.Song
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -16,21 +19,38 @@ import kotlinx.coroutines.launch
  * Implementación Desktop de PlayerViewModel con persistencia de preferencias.
  * 
  * Observa cambios en volume, shuffle y repeat mode para persistirlos automáticamente.
+ * 
+ * Cada instancia tiene su propio CoroutineScope que se limpia al destruir el ViewModel.
  */
 actual class PlayerViewModel(
     private val audioPlayer: AudioPlayer,
     private val userPreferences: UserPreferences,
-    private val viewModelScope: CoroutineScope,
     private val musicRepository: com.musicmusic.data.repository.MusicRepository? = null
 ) {
+    
+    // ViewModel-specific coroutine scope
+    private val viewModelScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
     
     // ========== Estados observables desde AudioPlayer ==========
     
     actual val playbackState: StateFlow<PlaybackState> = audioPlayer.playbackState
         .stateIn(viewModelScope, SharingStarted.Eagerly, PlaybackState.STOPPED)
     
-    actual val currentSong: StateFlow<Song?> = audioPlayer.currentSong
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    // Combinar currentSong del audioPlayer con el estado de favoritos para reactividad
+    actual val currentSong: StateFlow<Song?> = if (musicRepository != null) {
+        combine(
+            audioPlayer.currentSong,
+            musicRepository.allSongs
+        ) { song, allSongs ->
+            song?.let { currentSong ->
+                // Encontrar la canción actualizada en el repositorio para obtener el estado de favorito actual
+                allSongs.find { it.id == currentSong.id } ?: currentSong
+            }
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    } else {
+        audioPlayer.currentSong
+            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    }
     
     actual val currentPosition: StateFlow<Long> = audioPlayer.currentPosition
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
@@ -236,18 +256,18 @@ actual class PlayerViewModel(
     private var volumeBeforeMute = 0.5f
     
     actual fun toggleMute() {
-        println("🔇 toggleMute llamado - isMuted actual: $isMuted")
         viewModelScope.launch {
             if (isMuted) {
                 // Unmute: restaurar volumen anterior
-                println("🔊 Desmutear - restaurando volumen: $volumeBeforeMute")
                 audioPlayer.setMute(false)
-                audioPlayer.setVolume(volumeBeforeMute)
+                // Solo restaurar si el volumen guardado es diferente del actual
+                if (volumeBeforeMute != volume.value) {
+                    audioPlayer.setVolume(volumeBeforeMute)
+                }
                 isMuted = false
             } else {
                 // Mute: guardar volumen actual y silenciar
                 volumeBeforeMute = volume.value
-                println("🔇 Mutear - guardando volumen: $volumeBeforeMute")
                 audioPlayer.setMute(true)
                 isMuted = true
             }
@@ -364,6 +384,11 @@ actual class PlayerViewModel(
                 userPreferences.setLastPlayedSong(song.id, currentPosition.value)
             }
         }
+        
+        // Cancelar todas las coroutines del ViewModel
+        viewModelScope.cancel()
+        
+        // Liberar recursos del AudioPlayer
         audioPlayer.release()
     }
 }

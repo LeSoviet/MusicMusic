@@ -1,6 +1,8 @@
 package com.musicmusic.audio
 
 import com.musicmusic.domain.audio.AudioPlayer
+import com.musicmusic.domain.error.AppError
+import com.musicmusic.domain.error.ErrorHandler
 import com.musicmusic.domain.model.PlaybackState
 import com.musicmusic.domain.model.RepeatMode
 import com.musicmusic.domain.model.Song
@@ -22,11 +24,16 @@ import java.io.File
  * - Control completo de reproducción
  * - Ecualizador y efectos de audio
  * 
- * Basado en las mejores prácticas de VLCJ 4.x
+ * Basado en las mejores prácticas de VLCJ 4.x.
+ * 
+ * Tiene su propio CoroutineScope para operaciones asíncronas.
  */
 class VlcjAudioPlayer(
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val errorHandler: ErrorHandler? = null
 ) : AudioPlayer {
+    
+    // AudioPlayer-specific coroutine scope
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     
     // Factory para crear instancias de MediaPlayer
     private val mediaPlayerFactory: MediaPlayerFactory = MediaPlayerFactory()
@@ -109,6 +116,17 @@ class VlcjAudioPlayer(
             override fun error(mediaPlayer: MediaPlayer) {
                 _playbackState.value = PlaybackState.ERROR
                 stopPositionUpdates()
+                
+                // Notificar el error
+                scope.launch {
+                    val song = _currentSong.value
+                    errorHandler?.handleError(
+                        AppError.PlaybackError(
+                            song?.filePath ?: "unknown",
+                            "Media player error during playback"
+                        )
+                    )
+                }
             }
             
             override fun buffering(mediaPlayer: MediaPlayer, newCache: Float) {
@@ -381,6 +399,17 @@ class VlcjAudioPlayer(
             val file = File(uri)
             if (!file.exists()) {
                 _playbackState.value = PlaybackState.ERROR
+                errorHandler?.handleError(
+                    AppError.FileNotFound(uri, "Audio file does not exist")
+                )
+                return@withContext
+            }
+            
+            if (!file.canRead()) {
+                _playbackState.value = PlaybackState.ERROR
+                errorHandler?.handleError(
+                    AppError.PermissionError(uri, "Cannot read audio file")
+                )
                 return@withContext
             }
         }

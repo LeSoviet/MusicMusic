@@ -2,7 +2,11 @@ package com.musicmusic.data.repository
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import com.musicmusic.data.validation.UrlValidator
+import com.musicmusic.data.validation.ValidationResult
 import com.musicmusic.database.AppDatabase
+import com.musicmusic.domain.error.AppError
+import com.musicmusic.domain.error.ErrorHandler
 import com.musicmusic.domain.model.Radio
 import com.musicmusic.domain.model.RadioList
 import kotlinx.coroutines.Dispatchers
@@ -13,9 +17,12 @@ import kotlinx.serialization.json.Json
 
 /**
  * Repositorio para gestionar las radios online.
+ * 
+ * Incluye validación de URLs para prevenir SSRF y otros ataques.
  */
 class RadioRepository(
-    private val database: AppDatabase
+    private val database: AppDatabase,
+    private val errorHandler: ErrorHandler? = null
 ) {
     private val json = Json { 
         ignoreUnknownKeys = true
@@ -91,8 +98,25 @@ class RadioRepository(
             
             val radioList = json.decodeFromString<RadioList>(radioJson)
             
-            // Insertar en la base de datos
-            radioList.radios.forEach { radio ->
+            // Validar URLs antes de insertar
+            val validRadios = mutableListOf<com.musicmusic.domain.model.Radio>()
+            val invalidCount = radioList.radios.count { radio ->
+                when (val result = UrlValidator.validateRadioUrl(radio.url)) {
+                    is ValidationResult.Valid -> {
+                        validRadios.add(radio)
+                        false
+                    }
+                    is ValidationResult.Invalid -> {
+                        println("⚠️ Radio '${radio.name}' tiene URL inválida: ${result.reason}")
+                        true
+                    }
+                }
+            }
+            
+            println("✅ URLs válidas: ${validRadios.size}, inválidas: $invalidCount")
+            
+            // Insertar solo radios válidas en la base de datos
+            validRadios.forEach { radio ->
                 queries.insertRadio(
                     id = radio.id,
                     name = radio.name,
@@ -107,7 +131,7 @@ class RadioRepository(
                 )
             }
             
-            println("✅ ${radioList.radios.size} radios cargadas correctamente")
+            println("✅ ${validRadios.size} radios cargadas correctamente ($invalidCount URLs inválidas filtradas)")
         } catch (e: Exception) {
             println("❌ Error cargando radios: ${e.message}")
             e.printStackTrace()
@@ -262,15 +286,29 @@ class RadioRepository(
     }
     
     /**
-     * Valida si una URL de radio está activa.
-     * TODO: Implementar validación real con HEAD request
+     * Valida una URL de radio.
+     * 
+     * Verifica:
+     * - Formato válido
+     * - Esquema permitido (http/https)
+     * - No es IP privada o localhost (prevención SSRF)
+     * - No contiene extensiones sospechosas
+     * 
+     * @param url La URL a validar
+     * @return ValidationResult con el estado de validación
      */
-    suspend fun validateRadioUrl(url: String): Boolean = withContext(Dispatchers.IO) {
-        try {
-            // Por ahora solo validamos el formato
-            url.startsWith("http://") || url.startsWith("https://")
-        } catch (e: Exception) {
-            false
-        }
+    suspend fun validateRadioUrl(url: String): ValidationResult = withContext(Dispatchers.IO) {
+        UrlValidator.validateRadioUrl(url)
     }
+    
+    /**
+     * Valida una lista de URLs.
+     * 
+     * @param urls Lista de URLs a validar
+     * @return Par de listas: (URLs válidas, URLs inválidas con razón)
+     */
+    suspend fun validateBatchUrls(urls: List<String>): Pair<List<String>, List<Pair<String, String>>> = 
+        withContext(Dispatchers.IO) {
+            UrlValidator.validateBatch(urls)
+        }
 }
