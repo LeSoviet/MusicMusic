@@ -1,7 +1,8 @@
 package com.musicmusic.ui.components
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -14,7 +15,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.unit.dp
 
 /**
@@ -73,7 +73,21 @@ fun SeekBar(
             .hoverable(interactionSource = interactionSource)
             .pointerInput(enabled) {
                 if (enabled) {
-                    detectHorizontalDragGestures(
+                    // Detectar taps (clicks simples)
+                    detectTapGestures(
+                        onTap = { offset ->
+                            val newProgress = (offset.x / size.width).coerceIn(0f, 1f)
+                            onSeekStart(newProgress)
+                            onSeekChange(newProgress)
+                            onSeekEnd()
+                        }
+                    )
+                }
+            }
+            .pointerInput(enabled) {
+                if (enabled) {
+                    // Detectar drags (arrastrar)
+                    detectDragGestures(
                         onDragStart = { offset ->
                             isDragging = true
                             val newProgress = (offset.x / size.width).coerceIn(0f, 1f)
@@ -89,34 +103,13 @@ fun SeekBar(
                             onSeekEnd()
                             isDragging = false
                         },
-                        onHorizontalDrag = { change, _ ->
+                        onDrag = { change, _ ->
                             change.consume()
                             val newProgress = (change.position.x / size.width).coerceIn(0f, 1f)
                             dragProgress = newProgress
                             onSeekChange(newProgress)
                         }
                     )
-                }
-            }
-            .pointerInput(enabled) {
-                if (enabled) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            val position = event.changes.first().position
-                            
-                            // Solo procesar clicks (no drags)
-                            if (event.changes.first().pressed && 
-                                event.changes.first().previousPressed == false &&
-                                !isDragging) {
-                                val newProgress = (position.x / size.width).coerceIn(0f, 1f)
-                                onSeekStart(newProgress)
-                                onSeekChange(newProgress)
-                                onSeekEnd()
-                                event.changes.forEach { it.consume() }
-                            }
-                        }
-                    }
                 }
             },
         contentAlignment = Alignment.CenterStart

@@ -70,17 +70,17 @@ fun NowPlayingScreen(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     SeekBar(
                         progress = progress,
-                        onSeekStart = {
-                            playerViewModel.startSeeking(
-                                (playerViewModel.duration.value * it).toLong()
-                            )
+                        onSeekStart = { newProgress ->
+                            val targetPosition = (playerViewModel.duration.value * newProgress).toLong()
+                            playerViewModel.startSeeking(targetPosition)
                         },
                         onSeekChange = { newProgress ->
-                            val newPosition =
-                                (playerViewModel.duration.value * newProgress).toLong()
-                            playerViewModel.updateSeekPosition(newPosition)
+                            val targetPosition = (playerViewModel.duration.value * newProgress).toLong()
+                            playerViewModel.updateSeekPosition(targetPosition)
                         },
-                        onSeekEnd = { playerViewModel.endSeeking() },
+                        onSeekEnd = {
+                            playerViewModel.endSeeking()
+                        },
                         enabled = currentSong != null
                     )
 

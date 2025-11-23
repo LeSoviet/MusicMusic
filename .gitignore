@@ -69,3 +69,6 @@ temp/
 # Secrets
 secrets.properties
 api_keys.txt
+
+# Others
+.kotlin
