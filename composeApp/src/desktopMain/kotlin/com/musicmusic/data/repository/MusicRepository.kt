@@ -129,10 +129,10 @@ class MusicRepository(
                 // Normalizar metadatos con fallbacks inteligentes
                 val metadata = MetadataNormalizer.normalize(rawMetadata, file)
                 
-                // Buscar carátula en la carpeta si no está embebida
+                // Buscar carátula: primero embebida, luego en la carpeta
                 val coverArtPath = if (metadata.coverArtData != null) {
-                    // TODO: Guardar cover art embebida
-                    null
+                    // Guardar cover art embebida
+                    saveCoverArt(metadata)
                 } else {
                     MetadataNormalizer.findCoverArtInFolder(file)?.absolutePath
                 }
@@ -357,5 +357,35 @@ class MusicRepository(
         _allSongs.value = emptyList()
         _albums.value = emptyList()
         _artists.value = emptyList()
+    }
+
+    /**
+     * Guarda la carátula embebida en el sistema de archivos.
+     */
+    private fun saveCoverArt(metadata: com.musicmusic.domain.model.AudioMetadata): String? {
+        val coverArtData = metadata.coverArtData ?: return null
+
+        // Crear directorio de carátulas si no existe
+        val coverDir = File(System.getProperty("user.home"), ".musicmusic/covers")
+        if (!coverDir.exists()) {
+            coverDir.mkdirs()
+        }
+
+        // Generar nombre de archivo único
+        val artist = metadata.artist?.replace(Regex("[^a-zA-Z0-9\\s-]"), "") ?: "Unknown Artist"
+        val album = metadata.album?.replace(Regex("[^a-zA-Z0-9\\s-]"), "") ?: "Unknown Album"
+        val fileName = "$artist - $album.jpg"
+        val coverFile = File(coverDir, fileName)
+
+        return try {
+            // Solo guardar si no existe ya
+            if (!coverFile.exists()) {
+                coverFile.writeBytes(coverArtData)
+            }
+            coverFile.absolutePath
+        } catch (e: Exception) {
+            println("Error saving cover art: ${e.message}")
+            null
+        }
     }
 }

@@ -51,7 +51,8 @@ fun LibraryScreen(
                 searchQuery = searchQuery,
                 onSearchQueryChange = { libraryViewModel.updateSearchQuery(it) },
                 onScanDirectoryClick = onScanDirectory,
-                onAddFilesClick = onAddFiles
+                onAddFilesClick = onAddFiles,
+                selectedTab = selectedTab
             )
         }
     ) { paddingValues ->
@@ -60,38 +61,6 @@ fun LibraryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Tabs
-            TabRow(
-                selectedTabIndex = selectedTab.ordinal,
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                LibraryTab.entries.forEach { tab ->
-                    Tab(
-                        selected = selectedTab == tab,
-                        onClick = { libraryViewModel.selectTab(tab) },
-                        text = {
-                            Text(
-                                text = when (tab) {
-                                    LibraryTab.SONGS -> "Songs"
-                                    LibraryTab.ALBUMS -> "Albums"
-                                    LibraryTab.ARTISTS -> "Artists"
-                                }
-                            )
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = when (tab) {
-                                    LibraryTab.SONGS -> Icons.Rounded.MusicNote
-                                    LibraryTab.ALBUMS -> Icons.Rounded.Album
-                                    LibraryTab.ARTISTS -> Icons.Rounded.Person
-                                },
-                                contentDescription = null
-                            )
-                        }
-                    )
-                }
-            }
-            
             // Indicador de escaneo
             if (isScanning) {
                 LinearProgressIndicator(
@@ -99,7 +68,7 @@ fun LibraryScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            
+
             // Contenido según tab seleccionado
             when (selectedTab) {
                 LibraryTab.SONGS -> {
@@ -134,10 +103,12 @@ private fun LibraryTopBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onScanDirectoryClick: () -> Unit,
-    onAddFilesClick: () -> Unit
+    onAddFilesClick: () -> Unit,
+    selectedTab: LibraryTab
 ) {
     var isSearchActive by remember { mutableStateOf(false) }
-    
+    var showImportMenu by remember { mutableStateOf(false) }
+
     TopAppBar(
         title = {
             if (isSearchActive) {
@@ -153,7 +124,12 @@ private fun LibraryTopBar(
                     modifier = Modifier.fillMaxWidth()
                 )
             } else {
-                Text("Library")
+                val tabName = when (selectedTab) {
+                    LibraryTab.SONGS -> "Songs"
+                    LibraryTab.ALBUMS -> "Albums"
+                    LibraryTab.ARTISTS -> "Artists"
+                }
+                Text("Library > $tabName")
             }
         },
         actions = {
@@ -162,17 +138,44 @@ private fun LibraryTopBar(
                     isSearchActive = false
                     onSearchQueryChange("")
                 }) {
-                    Icon(Icons.Rounded.Close, contentDescription = "Close search")
+                    Icon(Icons.Rounded.Close, contentDescription = "")
                 }
             } else {
                 IconButton(onClick = { isSearchActive = true }) {
-                    Icon(Icons.Rounded.Search, contentDescription = "Search")
+                    Icon(Icons.Rounded.Search, contentDescription = "")
                 }
-                IconButton(onClick = onAddFilesClick) {
-                    Icon(Icons.Rounded.AudioFile, contentDescription = "Add files")
-                }
-                IconButton(onClick = onScanDirectoryClick) {
-                    Icon(Icons.Rounded.FolderOpen, contentDescription = "Scan directory")
+
+                // Import menu dropdown
+                Box {
+                    IconButton(onClick = { showImportMenu = true }) {
+                        Icon(Icons.Rounded.Add, contentDescription = "")
+                    }
+
+                    DropdownMenu(
+                        expanded = showImportMenu,
+                        onDismissRequest = { showImportMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Add Files") },
+                            leadingIcon = {
+                                Icon(Icons.Rounded.AudioFile, contentDescription = "")
+                            },
+                            onClick = {
+                                showImportMenu = false
+                                onAddFilesClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Scan Folder") },
+                            leadingIcon = {
+                                Icon(Icons.Rounded.FolderOpen, contentDescription = "")
+                            },
+                            onClick = {
+                                showImportMenu = false
+                                onScanDirectoryClick()
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -191,34 +194,6 @@ private fun SongsTab(
     var selectedSongs by remember { mutableStateOf<Set<String>>(emptySet()) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Botones de acción
-        if (songs.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = onPlayAll,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Rounded.PlayArrow, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Play All")
-                }
-                
-                OutlinedButton(
-                    onClick = onShuffleAll,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Rounded.Shuffle, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Shuffle")
-                }
-            }
-        }
-        
         // Lista de canciones
         if (songs.isEmpty()) {
             EmptyState(
@@ -227,7 +202,12 @@ private fun SongsTab(
             )
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = 120.dp  // Espacio extra para el PlayerBar
+                ),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 items(
@@ -236,10 +216,14 @@ private fun SongsTab(
                 ) { song ->
                     SongItem(
                         song = song,
-                        onClick = { /* Not used, handled by onSelect and onDoubleClick */ },
+                        onClick = {
+                            // Single click: selecciona y reproduce inmediatamente
+                            selectedSongs = setOf(song.id)
+                            onSongClick(song)
+                        },
                         isSelected = selectedSongs.contains(song.id),
                         onSelect = {
-                            // Single click: selecciona SOLO esta canción (limpia otras selecciones)
+                            // Selecciona sin reproducir (no usado)
                             selectedSongs = setOf(song.id)
                         },
                         onDoubleClick = {

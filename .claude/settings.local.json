@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(powershell.exe -Command \"cd C:\\Users\\LeSoviet\\Documents\\GitHub\\MusicMusic; .\\gradlew.bat :composeApp:run\")"
+      "Bash(powershell.exe -Command \"cd C:\\Users\\LeSoviet\\Documents\\GitHub\\MusicMusic; .\\gradlew.bat :composeApp:run\")",
+      "Bash(powershell.exe -Command:*)"
     ],
     "deny": [],
     "ask": []

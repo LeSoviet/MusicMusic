@@ -65,5 +65,8 @@ data class Song(
     /**
      * Retorna si es una canción local o de streaming
      */
-    fun isLocal(): Boolean = filePath != null
+    fun isLocal(): Boolean {
+        if (filePath == null) return false
+        return !filePath.startsWith("http://") && !filePath.startsWith("https://")
+    }
 }

@@ -57,8 +57,8 @@ fun SongItem(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        // Single click: selecciona (tiene pequeño delay para detectar double-click)
-                        onSelect?.invoke() ?: onClick()
+                        // Single click: reproduce inmediatamente (sin delay)
+                        onClick()
                     },
                     onDoubleTap = {
                         // Double click: reproduce

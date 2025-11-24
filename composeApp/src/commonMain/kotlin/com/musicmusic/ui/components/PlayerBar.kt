@@ -22,18 +22,15 @@ import org.koin.compose.koinInject
 
 /**
  * Barra de reproductor persistente (mini player) en la parte inferior.
- * 
- * Muestra:
- * - Miniatura de carátula
- * - Información básica de la canción
- * - Controles completos (shuffle, previous, play/pause, next, repeat, favorite)
- * - Volumen y queue
- * - Barra de progreso sutil
- * - Click para expandir a NowPlayingScreen
+ *
+ * Layout:
+ * - Izquierda: Carátula + Artista
+ * - Centro: Controles (shuffle, previous, play/pause, next, repeat, favorite)
+ * - Derecha: Título de la canción + Control de volumen
+ * - Superior: Barra de progreso interactiva para seek
  */
 @Composable
 fun PlayerBar(
-    onClick: () -> Unit,
     modifier: Modifier = Modifier,
     playerViewModel: PlayerViewModel = koinInject()
 ) {
@@ -42,8 +39,30 @@ fun PlayerBar(
     val isShuffleEnabled by playerViewModel.isShuffleEnabled.collectAsState()
     val repeatMode by playerViewModel.repeatMode.collectAsState()
     val volume by playerViewModel.volume.collectAsState()
-    val progress = playerViewModel.getProgress()
-    
+    val currentPosition by playerViewModel.currentPosition.collectAsState()
+    val duration by playerViewModel.duration.collectAsState()
+
+    // Estado local para el slider mientras el usuario lo arrastra
+    var isUserSeeking by remember { mutableStateOf(false) }
+    var seekPosition by remember { mutableStateOf(0f) }
+
+    // Calcular el progreso actual
+    val progress = if (duration > 0) {
+        currentPosition.toFloat() / duration.toFloat()
+    } else {
+        0f
+    }
+
+    // Actualizar seekPosition cuando no está arrastrando
+    LaunchedEffect(progress, isUserSeeking) {
+        if (!isUserSeeking) {
+            seekPosition = progress
+        }
+    }
+
+    // Usar siempre seekPosition para evitar saltos visuales
+    val displayProgress = seekPosition
+
     // Solo mostrar si hay una canción
     AnimatedVisibility(
         visible = currentSong != null,
@@ -53,8 +72,7 @@ fun PlayerBar(
         Surface(
             modifier = modifier
                 .fillMaxWidth()
-                .height(100.dp)
-                .clickable(onClick = onClick),
+                .height(120.dp),
             tonalElevation = 8.dp,
             shadowElevation = 8.dp,
             shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
@@ -62,27 +80,42 @@ fun PlayerBar(
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Barra de progreso sutil en la parte superior
-                LinearProgressIndicator(
-                    progress = progress,
+                // Slider interactivo para seek
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(2.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                )
-                
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                ) {
+                    Slider(
+                        value = displayProgress.coerceIn(0f, 1f),
+                        onValueChange = { newValue ->
+                            isUserSeeking = true
+                            seekPosition = newValue
+                        },
+                        onValueChangeFinished = {
+                            isUserSeeking = false
+                            val targetPosition = (seekPosition * duration).toLong()
+                            playerViewModel.seekTo(targetPosition)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colorScheme.primary,
+                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        )
+                    )
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 16.dp)
                 ) {
-                    // Carátula + Info (izquierda)
+                    // Artista (izquierda)
                     Row(
                         modifier = Modifier
                             .align(Alignment.CenterStart)
-                            .fillMaxHeight()
-                            .widthIn(max = 300.dp),
+                            .fillMaxHeight(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -91,47 +124,31 @@ fun PlayerBar(
                             coverArtPath = currentSong?.coverArtPath,
                             size = 64.dp
                         )
-                        
-                        // Información de la canción
-                        Column(
-                            modifier = Modifier.weight(1f, fill = false),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = currentSong?.title ?: "",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            
-                            Spacer(modifier = Modifier.height(4.dp))
-                            
-                            Text(
-                                text = currentSong?.getDisplayArtist() ?: "",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+
+                        // Artista
+                        Text(
+                            text = currentSong?.getDisplayArtist() ?: "",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = 200.dp)
+                        )
                     }
                     
                     // Controles del reproductor (centro)
                     Row(
                         modifier = Modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Shuffle
                         IconButton(
-                            onClick = { playerViewModel.toggleShuffle() },
-                            modifier = Modifier.size(36.dp)
+                            onClick = { playerViewModel.toggleShuffle() }
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Shuffle,
                                 contentDescription = "Shuffle",
-                                modifier = Modifier.size(18.dp),
                                 tint = if (isShuffleEnabled) {
                                     MaterialTheme.colorScheme.primary
                                 } else {
@@ -140,26 +157,19 @@ fun PlayerBar(
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(4.dp))
-
                         // Previous
                         IconButton(
-                            onClick = { playerViewModel.previous() },
-                            modifier = Modifier.size(40.dp)
+                            onClick = { playerViewModel.previous() }
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.SkipPrevious,
-                                contentDescription = "Previous",
-                                modifier = Modifier.size(26.dp)
+                                contentDescription = "Previous"
                             )
                         }
-
-                        Spacer(modifier = Modifier.width(8.dp))
 
                         // Play/Pause (prominente)
                         FilledIconButton(
                             onClick = { playerViewModel.togglePlayPause() },
-                            modifier = Modifier.size(48.dp),
                             colors = IconButtonDefaults.filledIconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.primary
                             )
@@ -171,31 +181,23 @@ fun PlayerBar(
                             Icon(
                                 imageVector = icon,
                                 contentDescription = if (playbackState == PlaybackState.PLAYING) "Pause" else "Play",
-                                modifier = Modifier.size(28.dp),
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(8.dp))
-
                         // Next
                         IconButton(
-                            onClick = { playerViewModel.next() },
-                            modifier = Modifier.size(40.dp)
+                            onClick = { playerViewModel.next() }
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.SkipNext,
-                                contentDescription = "Next",
-                                modifier = Modifier.size(26.dp)
+                                contentDescription = "Next"
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(4.dp))
-
                         // Repeat
                         IconButton(
-                            onClick = { playerViewModel.toggleRepeatMode() },
-                            modifier = Modifier.size(36.dp)
+                            onClick = { playerViewModel.toggleRepeatMode() }
                         ) {
                             val icon = when (repeatMode) {
                                 RepeatMode.ONE -> Icons.Rounded.RepeatOne
@@ -204,7 +206,6 @@ fun PlayerBar(
                             Icon(
                                 imageVector = icon,
                                 contentDescription = "Repeat",
-                                modifier = Modifier.size(18.dp),
                                 tint = if (repeatMode != RepeatMode.OFF) {
                                     MaterialTheme.colorScheme.primary
                                 } else {
@@ -213,16 +214,13 @@ fun PlayerBar(
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(4.dp))
-
                         // Favorite
                         IconButton(
                             onClick = {
                                 currentSong?.let { song ->
                                     playerViewModel.toggleFavorite(song.id)
                                 }
-                            },
-                            modifier = Modifier.size(36.dp)
+                            }
                         ) {
                             Icon(
                                 imageVector = if (currentSong?.isFavorite == true) {
@@ -231,7 +229,6 @@ fun PlayerBar(
                                     Icons.Rounded.FavoriteBorder
                                 },
                                 contentDescription = "Toggle favorite",
-                                modifier = Modifier.size(18.dp),
                                 tint = if (currentSong?.isFavorite == true) {
                                     MaterialTheme.colorScheme.error
                                 } else {
@@ -241,14 +238,23 @@ fun PlayerBar(
                         }
                     }
 
-                    // Controles secundarios (derecha)
+                    // Título de la canción y controles secundarios (derecha)
                     Row(
                         modifier = Modifier
                             .align(Alignment.CenterEnd)
                             .fillMaxHeight(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // Título de la canción
+                        Text(
+                            text = currentSong?.title ?: "",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = 250.dp)
+                        )
                         // Volume control with mute button
                         IconButton(
                             onClick = { playerViewModel.toggleMute() },
@@ -272,19 +278,6 @@ fun PlayerBar(
                             onValueChange = { playerViewModel.setVolume(it) },
                             modifier = Modifier.width(100.dp)
                         )
-
-                        // Expand button
-                        IconButton(
-                            onClick = onClick,
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.KeyboardArrowUp,
-                                contentDescription = "Expand player",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
                     }
                 }
             }

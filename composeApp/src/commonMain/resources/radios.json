@@ -2,203 +2,361 @@
   "radios": [
     {
       "id": "radio-001",
-      "name": "Jazz FM",
-      "url": "https://jazzradio.ice.infomaniak.ch/jazzradio-high.mp3",
-      "genre": "Jazz",
-      "country": "Switzerland",
-      "description": "The best jazz music 24/7",
+      "name": "La 100 - Buenos Aires",
+      "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/FM999_56.mp3",
+      "genre": "Cumbia",
+      "country": "Argentina",
+      "description": "La 100 - FM 99.9 Buenos Aires",
       "bitrate": 128,
-      "tags": ["jazz", "smooth", "relaxing"]
+      "tags": ["cumbia", "latin", "argentina"]
     },
     {
       "id": "radio-002",
-      "name": "Classic Rock FM",
-      "url": "http://stream.rockradio.com:80/classicrock",
-      "genre": "Rock",
-      "country": "USA",
-      "description": "Classic rock hits from the 60s, 70s, and 80s",
+      "name": "Barranquilla Estereo",
+      "url": "https://radio.yaservers.com:8197/;stream.mp3",
+      "genre": "Cumbia",
+      "country": "Colombia",
+      "description": "80s, cumbia, latin, merengue, salsa",
       "bitrate": 128,
-      "tags": ["rock", "classic", "guitar"]
+      "tags": ["cumbia", "salsa", "merengue", "colombia"]
     },
     {
       "id": "radio-003",
-      "name": "Smooth Jazz 24/7",
-      "url": "http://smoothjazz.cdnstream1.com:80/smoothjazz",
+      "name": "RdMix Classic Rock 70s 80s 90s",
+      "url": "https://cast1.torontocast.com:4610/stream",
+      "genre": "Rock",
+      "country": "Canada",
+      "logoUrl": "https://static.wixstatic.com/media/f361b3_1bad7e5fb9a54196b2ac2c2fe71d6e4f~mv2.jpg",
+      "description": "Classic rock from the 60s, 70s, 80s and 90s",
+      "bitrate": 192,
+      "tags": ["classic rock", "70s", "80s", "90s"]
+    },
+    {
+      "id": "radio-004",
+      "name": "70s 80s 90s RdMix Network",
+      "url": "https://cast1.torontocast.com:1830/stream",
+      "genre": "Pop",
+      "country": "Canada",
+      "description": "The best hits from the 70s, 80s and 90s",
+      "bitrate": 192,
+      "tags": ["70s", "80s", "90s", "pop", "oldies"]
+    },
+    {
+      "id": "radio-005",
+      "name": "TOP 100 CLUB CHARTS",
+      "url": "https://breakz-2012-high.rautemusik.fm/?ref=radiobrowser-top100-clubcharts",
+      "genre": "Dance",
+      "country": "Germany",
+      "logoUrl": "https://i.ibb.co/T1gH75m/rb-top100clubcharts.png",
+      "description": "Top club charts - Dance, EDM, House 24/7",
+      "bitrate": 192,
+      "tags": ["dance", "edm", "house", "club", "charts"]
+    },
+    {
+      "id": "radio-006",
+      "name": "Aktuelle HITS",
+      "url": "https://breakz-2012-high.rautemusik.fm/?ref=radiobrowser-akthits",
+      "genre": "Pop",
+      "country": "Germany",
+      "logoUrl": "https://i.ibb.co/3mtCKLC/aktHits.jpg",
+      "description": "Current hits - Pop, Dance, EDM 24/7",
+      "bitrate": 192,
+      "tags": ["pop", "dance", "hits", "charts"]
+    },
+    {
+      "id": "radio-007",
+      "name": "TOP 100 DJ CHARTS",
+      "url": "https://breakz-high.rautemusik.fm/?ref=radiobrowser-top100-djcharts",
+      "genre": "Electronic",
+      "country": "Germany",
+      "logoUrl": "https://i.ibb.co/jMmvLjz/TOP100-DJ-CHARTS-RADIO.png",
+      "description": "Top DJ charts - Electronic, House, Techno",
+      "bitrate": 192,
+      "tags": ["electronic", "dj", "house", "techno"]
+    },
+    {
+      "id": "radio-008",
+      "name": "REMIX & PARTYBREAKS",
+      "url": "https://stream.breakz.fm/?ref=radiobrowser-remix-partybreaks-radio",
+      "genre": "Dance",
+      "country": "Germany",
+      "logoUrl": "https://i.ibb.co/1bdF482/REMIX-PARTYNBREAKS-LOGO-1.png",
+      "description": "House, EDM, HipHop remixes and party breaks",
+      "bitrate": 192,
+      "tags": ["remix", "house", "edm", "hiphop"]
+    },
+    {
+      "id": "radio-009",
+      "name": "DEEJAY REMIXE",
+      "url": "https://breakz-high.rautemusik.fm/?ref=radiobrowser-deejay-remixes-radio",
+      "genre": "Dance",
+      "country": "Germany",
+      "logoUrl": "https://i.ibb.co/sP4q4Wh/breakz-fm-logo-fav.png",
+      "description": "Finest House, EDM, Dance and Party remixes",
+      "bitrate": 192,
+      "tags": ["remix", "house", "edm", "dance"]
+    },
+    {
+      "id": "radio-010",
+      "name": "Exa FM Guatemala",
+      "url": "https://stream.zeno.fm/czdkk32qduhvv",
+      "genre": "Pop",
+      "country": "Guatemala",
+      "logoUrl": "https://i.ibb.co/Wsr8kn2/Exa-FM-Guatemala.jpg",
+      "description": "La estación exacta - Pop latino",
+      "bitrate": 128,
+      "tags": ["pop", "latin", "spanish", "guatemala"]
+    },
+    {
+      "id": "radio-011",
+      "name": "LOS40 Colombia",
+      "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/LOS40_COLOMBIAAAC.aac",
+      "genre": "Pop",
+      "country": "Colombia",
+      "logoUrl": "https://cdn-profiles.tunein.com/p1306541/images/logod.png",
+      "description": "Los 40 principales Colombia",
+      "bitrate": 128,
+      "tags": ["pop", "latin", "top40", "colombia"]
+    },
+    {
+      "id": "radio-012",
+      "name": "0nlineradio REMIX",
+      "url": "https://stream.0nlineradio.com/remix?ref=radiobrowser",
+      "genre": "Dance",
+      "country": "Germany",
+      "description": "Non-stop remixes and mashups",
+      "bitrate": 128,
+      "tags": ["remix", "dance", "electronic"]
+    },
+    {
+      "id": "radio-013",
+      "name": "Radio Paradise (Main Mix)",
+      "url": "https://stream.radioparadise.com/aac-320",
+      "genre": "Eclectic",
+      "country": "USA",
+      "description": "Listener supported, commercial free, eclectic online radio",
+      "bitrate": 320,
+      "tags": ["eclectic", "commercial-free", "variety"]
+    },
+    {
+      "id": "radio-014",
+      "name": "Radio Paradise (Mellow Mix)",
+      "url": "https://stream.radioparadise.com/mellow-320",
+      "genre": "Mellow",
+      "country": "USA",
+      "description": "A mellower flavor of Paradise",
+      "bitrate": 320,
+      "tags": ["mellow", "relaxing", "chill"]
+    },
+    {
+      "id": "radio-015",
+      "name": "Radio Paradise (Rock Mix)",
+      "url": "https://stream.radioparadise.com/rock-320",
+      "genre": "Rock",
+      "country": "USA",
+      "description": "More rock, less talk",
+      "bitrate": 320,
+      "tags": ["rock", "alternative", "indie"]
+    },
+    {
+      "id": "radio-016",
+      "name": "SomaFM - Groove Salad",
+      "url": "https://ice1.somafm.com/groovesalad-128-mp3",
+      "genre": "Ambient",
+      "country": "USA",
+      "description": "A nicely chilled plate of ambient/downtempo beats and grooves",
+      "bitrate": 128,
+      "tags": ["ambient", "downtempo", "chill", "electronic"]
+    },
+    {
+      "id": "radio-017",
+      "name": "SomaFM - Drone Zone",
+      "url": "https://ice1.somafm.com/dronezone-128-mp3",
+      "genre": "Ambient",
+      "country": "USA",
+      "description": "Atmospheric textures with minimal beats",
+      "bitrate": 128,
+      "tags": ["ambient", "drone", "atmospheric", "meditation"]
+    },
+    {
+      "id": "radio-018",
+      "name": "SomaFM - Indie Pop Rocks",
+      "url": "https://ice1.somafm.com/indiepop-128-mp3",
+      "genre": "Indie",
+      "country": "USA",
+      "description": "Indie pop and rock, new and classic",
+      "bitrate": 128,
+      "tags": ["indie", "pop", "rock", "alternative"]
+    },
+    {
+      "id": "radio-019",
+      "name": "SomaFM - DEF CON Radio",
+      "url": "https://ice1.somafm.com/defcon-128-mp3",
+      "genre": "Electronic",
+      "country": "USA",
+      "description": "Music for Hacking. The DEF CON Year-round Radio Station",
+      "bitrate": 128,
+      "tags": ["electronic", "hacking", "techno", "industrial"]
+    },
+    {
+      "id": "radio-020",
+      "name": "WFMU - Freeform Radio",
+      "url": "https://stream0.wfmu.org/freeform-128k",
+      "genre": "Freeform",
+      "country": "USA",
+      "description": "Independent freeform radio since 1958",
+      "bitrate": 128,
+      "tags": ["freeform", "independent", "eclectic", "variety"]
+    },
+    {
+      "id": "radio-021",
+      "name": "KEXP 90.3 FM",
+      "url": "https://kexp-mp3-128.streamguys1.com/kexp128.mp3",
+      "genre": "Alternative",
+      "country": "USA",
+      "description": "Where the music matters - Seattle",
+      "bitrate": 128,
+      "tags": ["alternative", "indie", "rock", "eclectic"]
+    },
+    {
+      "id": "radio-022",
+      "name": "Jazz24",
+      "url": "https://live.amperwave.net/direct/ppm-jazz24aac-ibc1",
       "genre": "Jazz",
       "country": "USA",
-      "description": "Smooth jazz for work and relaxation",
+      "description": "The world's best jazz",
       "bitrate": 128,
       "tags": ["jazz", "smooth", "instrumental"]
     },
     {
-      "id": "radio-004",
-      "name": "Electronic Beats",
-      "url": "http://stream.electronicbeats.net:80/live",
-      "genre": "Electronic",
-      "country": "Germany",
-      "description": "Electronic, house, and techno music",
-      "bitrate": 192,
-      "tags": ["electronic", "house", "techno", "edm"]
+      "id": "radio-023",
+      "name": "BBC Radio 6 Music",
+      "url": "https://stream.live.vc.bbcmedia.co.uk/bbc_6music",
+      "genre": "Alternative",
+      "country": "UK",
+      "description": "The alternative music station",
+      "bitrate": 128,
+      "tags": ["alternative", "indie", "rock", "uk"]
     },
     {
-      "id": "radio-005",
-      "name": "Classical Music 24",
-      "url": "http://stream.classicalradio.com:80/classical",
-      "genre": "Classical",
-      "country": "Austria",
-      "description": "Classical music from baroque to contemporary",
+      "id": "radio-024",
+      "name": "FIP",
+      "url": "https://icecast.radiofrance.fr/fip-midfi.mp3",
+      "genre": "Eclectic",
+      "country": "France",
+      "description": "French eclectic music radio",
       "bitrate": 128,
+      "tags": ["eclectic", "jazz", "world", "french"]
+    },
+    {
+      "id": "radio-025",
+      "name": "Radio Swiss Jazz",
+      "url": "https://stream.srg-ssr.ch/m/rsj/mp3_128",
+      "genre": "Jazz",
+      "country": "Switzerland",
+      "description": "24/7 Jazz without moderation",
+      "bitrate": 128,
+      "tags": ["jazz", "smooth", "instrumental", "commercial-free"]
+    },
+    {
+      "id": "radio-026",
+      "name": "Radio Swiss Classic",
+      "url": "https://stream.srg-ssr.ch/m/rsc_de/mp3_128",
+      "genre": "Classical",
+      "country": "Switzerland",
+      "description": "24/7 Classical music without moderation",
+      "bitrate": 128,
+      "tags": ["classical", "orchestra", "commercial-free"]
+    },
+    {
+      "id": "radio-027",
+      "name": "Radio Swiss Pop",
+      "url": "https://stream.srg-ssr.ch/m/rsp/mp3_128",
+      "genre": "Pop",
+      "country": "Switzerland",
+      "description": "The best of pop music",
+      "bitrate": 128,
+      "tags": ["pop", "chart", "commercial-free"]
+    },
+    {
+      "id": "rock-and-pop-959",
+      "name": "Rock & Pop 95.9",
+      "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/ROCKANDPOPAAC.aac",
+      "genre": "Rock",
+      "country": "Argentina",
+      "description": "Rock & Pop - FM 95.9 Buenos Aires",
+      "bitrate": 128,
+      "tags": ["rock", "pop", "argentina", "buenos aires"]
+    },
+    {
+      "id": "mega-983",
+      "name": "Mega 98.3",
+      "url": "https://mega.stweb.tv/mega983/live/chunks.m3u8",
+      "genre": "Pop",
+      "country": "Argentina",
+      "description": "Mega 98.3 - FM 98.3 Buenos Aires",
+      "bitrate": 128,
+      "tags": ["pop", "hits", "argentina", "buenos aires"]
+    },
+    {
+      "id": "radio-disney-943",
+      "name": "Radio Disney 94.3",
+      "url": "https://27423.live.streamtheworld.com:443/DISNEY_ARG_BA_ADP.aac",
+      "genre": "Pop",
+      "country": "Argentina",
+      "description": "Radio Disney - FM 94.3 Buenos Aires",
+      "bitrate": 128,
+      "tags": ["pop", "disney", "argentina", "buenos aires"]
+    },
+    {
+      "id": "radio-continental-590",
+      "name": "Radio Continental 590",
+      "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/CONTINENTAL_AM590AAC.aac",
+      "genre": "News",
+      "country": "Argentina",
+      "description": "Radio Continental - AM 590 Buenos Aires",
+      "bitrate": 128,
+      "tags": ["news", "talk", "argentina", "buenos aires"]
+    },
+    {
+      "id": "radio-10-710",
+      "name": "Radio 10 710",
+      "url": "https://radio10.stweb.tv/radio10/live/playlist.m3u8",
+      "genre": "News",
+      "country": "Argentina",
+      "description": "Radio 10 - AM 710 Buenos Aires",
+      "bitrate": 128,
+      "tags": ["news", "talk", "argentina", "buenos aires"]
+    },
+    {
+      "id": "radio-con-vos-899",
+      "name": "Radio Con Vos 89.9",
+      "url": "https://server1.stweb.tv/rcvos/live/chunks.m3u8",
+      "genre": "Alternative",
+      "country": "Argentina",
+      "description": "Radio Con Vos - FM 89.9 Buenos Aires",
+      "bitrate": 128,
+      "tags": ["alternative", "indie", "argentina", "buenos aires"]
+    },
+    {
+      "id": "radio-029",
+      "name": "Klassik Radio",
+      "url": "https://stream.klassikradio.de/live/mp3-192",
+      "genre": "Classical",
+      "country": "Germany",
+      "description": "Classical music from baroque to modern",
+      "bitrate": 192,
       "tags": ["classical", "orchestra", "piano"]
     },
     {
-      "id": "radio-006",
-      "name": "Hip Hop Nation",
-      "url": "http://stream.hiphop.com:80/hiphop",
-      "genre": "Hip Hop",
-      "country": "USA",
-      "description": "The hottest hip hop and rap tracks",
-      "bitrate": 128,
-      "tags": ["hiphop", "rap", "urban"]
-    },
-    {
-      "id": "radio-007",
-      "name": "Country Roads Radio",
-      "url": "http://stream.countryroads.com:80/country",
-      "genre": "Country",
-      "country": "USA",
-      "description": "Contemporary and classic country music",
-      "bitrate": 128,
-      "tags": ["country", "folk", "acoustic"]
-    },
-    {
-      "id": "radio-008",
-      "name": "Latin Beats",
-      "url": "http://stream.latinbeats.com:80/latin",
-      "genre": "Latin",
-      "country": "Mexico",
-      "description": "Salsa, reggaeton, and Latin pop",
-      "bitrate": 128,
-      "tags": ["latin", "salsa", "reggaeton", "spanish"]
-    },
-    {
-      "id": "radio-009",
-      "name": "Blues Radio",
-      "url": "http://stream.bluesradio.com:80/blues",
-      "genre": "Blues",
-      "country": "USA",
-      "description": "The best blues from Chicago to Delta",
-      "bitrate": 128,
-      "tags": ["blues", "guitar", "soul"]
-    },
-    {
-      "id": "radio-010",
-      "name": "Reggae Vibes",
-      "url": "http://stream.reggaevibes.com:80/reggae",
-      "genre": "Reggae",
-      "country": "Jamaica",
-      "description": "Reggae, ska, and dancehall music",
-      "bitrate": 128,
-      "tags": ["reggae", "ska", "dancehall", "caribbean"]
-    },
-    {
-      "id": "radio-011",
-      "name": "Indie Rock Station",
-      "url": "http://stream.indierock.com:80/indie",
-      "genre": "Indie",
+      "id": "radio-030",
+      "name": "NTS Radio 1",
+      "url": "https://stream-mixtape-geo.ntslive.net/stream",
+      "genre": "Eclectic",
       "country": "UK",
-      "description": "Independent and alternative rock",
-      "bitrate": 192,
-      "tags": ["indie", "alternative", "rock"]
-    },
-    {
-      "id": "radio-012",
-      "name": "Metal Radio",
-      "url": "http://stream.metalradio.com:80/metal",
-      "genre": "Metal",
-      "country": "Sweden",
-      "description": "Heavy metal, thrash, and death metal",
-      "bitrate": 192,
-      "tags": ["metal", "heavy", "rock"]
-    },
-    {
-      "id": "radio-013",
-      "name": "Ambient Soundscapes",
-      "url": "http://stream.ambientradio.com:80/ambient",
-      "genre": "Ambient",
-      "country": "Iceland",
-      "description": "Relaxing ambient and atmospheric music",
+      "description": "Don't assume the position - Underground radio",
       "bitrate": 128,
-      "tags": ["ambient", "relaxing", "instrumental", "chill"]
-    },
-    {
-      "id": "radio-014",
-      "name": "Pop Hits Radio",
-      "url": "http://stream.pophits.com:80/pop",
-      "genre": "Pop",
-      "country": "USA",
-      "description": "Today's top pop hits",
-      "bitrate": 128,
-      "tags": ["pop", "chart", "mainstream"]
-    },
-    {
-      "id": "radio-015",
-      "name": "World Music Radio",
-      "url": "http://stream.worldmusic.com:80/world",
-      "genre": "World",
-      "country": "International",
-      "description": "Music from around the globe",
-      "bitrate": 128,
-      "tags": ["world", "ethnic", "traditional"]
-    },
-    {
-      "id": "radio-016",
-      "name": "70s Disco",
-      "url": "http://stream.disco70s.com:80/disco",
-      "genre": "Disco",
-      "country": "USA",
-      "description": "Disco hits from the 1970s",
-      "bitrate": 128,
-      "tags": ["disco", "70s", "dance", "funk"]
-    },
-    {
-      "id": "radio-017",
-      "name": "80s Hits",
-      "url": "http://stream.80shits.com:80/80s",
-      "genre": "80s",
-      "country": "USA",
-      "description": "The best of the 1980s",
-      "bitrate": 128,
-      "tags": ["80s", "retro", "pop", "rock"]
-    },
-    {
-      "id": "radio-018",
-      "name": "90s Alternative",
-      "url": "http://stream.90salt.com:80/90s",
-      "genre": "Alternative",
-      "country": "USA",
-      "description": "90s alternative and grunge",
-      "bitrate": 128,
-      "tags": ["90s", "grunge", "alternative"]
-    },
-    {
-      "id": "radio-019",
-      "name": "Folk & Acoustic",
-      "url": "http://stream.folkradio.com:80/folk",
-      "genre": "Folk",
-      "country": "Ireland",
-      "description": "Folk, bluegrass, and acoustic music",
-      "bitrate": 128,
-      "tags": ["folk", "acoustic", "bluegrass"]
-    },
-    {
-      "id": "radio-020",
-      "name": "K-Pop Radio",
-      "url": "http://stream.kpopradio.com:80/kpop",
-      "genre": "K-Pop",
-      "country": "South Korea",
-      "description": "Korean pop music 24/7",
-      "bitrate": 192,
-      "tags": ["kpop", "korean", "pop", "asian"]
+      "tags": ["eclectic", "electronic", "experimental", "uk"]
     }
   ]
 }

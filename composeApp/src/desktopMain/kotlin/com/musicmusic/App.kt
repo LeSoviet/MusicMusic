@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.unit.dp
@@ -58,8 +59,9 @@ fun App() {
     }
 
     MusicMusicTheme(darkTheme = isDarkMode) {
-        var currentScreen by remember { mutableStateOf(Screen.LIBRARY) }
-        
+        var currentScreen by remember { mutableStateOf(Screen.LIBRARY_SONGS) }
+        var isLibraryExpanded by remember { mutableStateOf(true) }
+
         Surface(
             modifier = Modifier
                 .fillMaxSize()
@@ -74,10 +76,24 @@ fun App() {
                         onSeekBackward = { playerViewModel.seekBy(-5000) },
                         onSeekForward = { playerViewModel.seekBy(5000) },
                         onSearch = { /* TODO: Implementar búsqueda */ },
-                        onGoToLibrary = { currentScreen = Screen.LIBRARY },
-                        onGoToRadios = { currentScreen = Screen.RADIOS },
-                        onGoToQueue = { currentScreen = Screen.QUEUE },
-                        onSettings = { currentScreen = Screen.SETTINGS },
+                        onGoToLibrary = {
+                            isLibraryExpanded = !isLibraryExpanded
+                            if (!isLibraryExpanded) {
+                                currentScreen = Screen.LIBRARY_SONGS
+                            }
+                        },
+                        onGoToRadios = {
+                            isLibraryExpanded = false
+                            currentScreen = Screen.RADIOS
+                        },
+                        onGoToQueue = {
+                            isLibraryExpanded = false
+                            currentScreen = Screen.QUEUE
+                        },
+                        onSettings = {
+                            isLibraryExpanded = false
+                            currentScreen = Screen.SETTINGS
+                        },
                         onToggleTheme = { themeManager.toggleTheme() }
                     )
                 },
@@ -90,32 +106,89 @@ fun App() {
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    
+
+                    // Library expandible
                     NavigationRailItem(
-                        icon = { Icon(Icons.Default.LibraryMusic, contentDescription = null) },
+                        icon = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.LibraryMusic,
+                                    contentDescription = ""
+                                )
+                                Icon(
+                                    if (isLibraryExpanded) Icons.Default.ExpandMore else Icons.Default.ChevronRight,
+                                    contentDescription = "",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        },
                         label = { Text("Library") },
-                        selected = currentScreen == Screen.LIBRARY,
-                        onClick = { currentScreen = Screen.LIBRARY }
+                        selected = currentScreen in listOf(Screen.LIBRARY_SONGS, Screen.LIBRARY_ALBUMS, Screen.LIBRARY_ARTISTS),
+                        onClick = {
+                            isLibraryExpanded = !isLibraryExpanded
+                            if (!isLibraryExpanded) {
+                                currentScreen = Screen.LIBRARY_SONGS
+                            }
+                        },
+                        alwaysShowLabel = true
                     )
-                    
+
+                    // Sub-items de Library (solo visibles cuando está expandido)
+                    if (isLibraryExpanded) {
+                        NavigationRailItem(
+                            icon = { Icon(Icons.Default.MusicNote, contentDescription = "") },
+                            label = { Text("  Songs") },
+                            selected = currentScreen == Screen.LIBRARY_SONGS,
+                            onClick = { currentScreen = Screen.LIBRARY_SONGS },
+                            alwaysShowLabel = true
+                        )
+
+                        NavigationRailItem(
+                            icon = { Icon(Icons.Default.Album, contentDescription = "") },
+                            label = { Text("  Albums") },
+                            selected = currentScreen == Screen.LIBRARY_ALBUMS,
+                            onClick = { currentScreen = Screen.LIBRARY_ALBUMS },
+                            alwaysShowLabel = true
+                        )
+
+                        NavigationRailItem(
+                            icon = { Icon(Icons.Default.Person, contentDescription = "") },
+                            label = { Text("  Artists") },
+                            selected = currentScreen == Screen.LIBRARY_ARTISTS,
+                            onClick = { currentScreen = Screen.LIBRARY_ARTISTS },
+                            alwaysShowLabel = true
+                        )
+                    }
+
                     NavigationRailItem(
-                        icon = { Icon(Icons.Default.Radio, contentDescription = null) },
+                        icon = { Icon(Icons.Default.Radio, contentDescription = "") },
                         label = { Text("Radios") },
                         selected = currentScreen == Screen.RADIOS,
-                        onClick = { currentScreen = Screen.RADIOS }
+                        onClick = {
+                            isLibraryExpanded = false
+                            currentScreen = Screen.RADIOS
+                        },
+                        alwaysShowLabel = true
                     )
-                    
+
                     Spacer(modifier = Modifier.weight(1f))
-                    
+
                     NavigationRailItem(
-                        icon = { Icon(Icons.Default.QueueMusic, contentDescription = null) },
+                        icon = { Icon(Icons.Default.QueueMusic, contentDescription = "") },
                         label = { Text("Queue") },
                         selected = currentScreen == Screen.QUEUE,
-                        onClick = { currentScreen = Screen.QUEUE }
+                        onClick = {
+                            isLibraryExpanded = false
+                            currentScreen = Screen.QUEUE
+                        },
+                        alwaysShowLabel = true
                     )
-                    
+
                     Spacer(modifier = Modifier.height(16.dp))
-                    
+
                     // Toggle de tema
                     IconButton(
                         onClick = { themeManager.toggleTheme() },
@@ -123,19 +196,22 @@ fun App() {
                     ) {
                         Icon(
                             imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = "Toggle Theme",
+                            contentDescription = "",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    
+
                     // Configuración
                     IconButton(
-                        onClick = { currentScreen = Screen.SETTINGS },
+                        onClick = {
+                            isLibraryExpanded = false
+                            currentScreen = Screen.SETTINGS
+                        },
                         modifier = Modifier.padding(8.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "Configuración",
+                            contentDescription = "",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -149,15 +225,29 @@ fun App() {
                         transitionSpec = AppAnimations.slideHorizontalTransition()
                     ) { screen ->
                         when (screen) {
-                            Screen.LIBRARY -> {
+                            Screen.LIBRARY_SONGS,
+                            Screen.LIBRARY_ALBUMS,
+                            Screen.LIBRARY_ARTISTS -> {
                                 val libraryViewModel = koinInject<com.musicmusic.ui.screens.library.LibraryViewModel>()
+
+                                // Sincronizar el tab seleccionado con la pantalla actual
+                                LaunchedEffect(screen) {
+                                    val tab = when (screen) {
+                                        Screen.LIBRARY_SONGS -> com.musicmusic.ui.screens.library.LibraryTab.SONGS
+                                        Screen.LIBRARY_ALBUMS -> com.musicmusic.ui.screens.library.LibraryTab.ALBUMS
+                                        Screen.LIBRARY_ARTISTS -> com.musicmusic.ui.screens.library.LibraryTab.ARTISTS
+                                        else -> com.musicmusic.ui.screens.library.LibraryTab.SONGS
+                                    }
+                                    libraryViewModel.selectTab(tab)
+                                }
+
                                 LibraryScreen(
                                     onScanDirectory = {
                                         // Abrir selector de carpeta
                                         val chooser = JFileChooser()
                                         chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
                                         chooser.dialogTitle = "Select Music Folder"
-                                        
+
                                         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                                             val selectedPath = chooser.selectedFile.absolutePath
                                             libraryViewModel.scanDirectory(selectedPath)
@@ -169,7 +259,7 @@ fun App() {
                                         chooser.isMultiSelectionEnabled = true
                                         chooser.fileSelectionMode = JFileChooser.FILES_ONLY
                                         chooser.dialogTitle = "Add Music Files"
-                                        
+
                                         // Filtro de extensiones de audio
                                         chooser.fileFilter = object : javax.swing.filechooser.FileFilter() {
                                             override fun accept(f: File): Boolean {
@@ -177,10 +267,10 @@ fun App() {
                                                 val extension = f.extension.lowercase()
                                                 return extension in listOf("mp3", "flac", "wav", "ogg", "m4a", "aac", "wma")
                                             }
-                                            
+
                                             override fun getDescription() = "Audio Files (*.mp3, *.flac, *.wav, *.ogg, *.m4a, *.aac, *.wma)"
                                         }
-                                        
+
                                         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                                             val selectedFiles = chooser.selectedFiles.toList()
                                             libraryViewModel.addFiles(selectedFiles)
@@ -194,12 +284,6 @@ fun App() {
                                     viewModel = koinInject()
                                 )
                             }
-                            Screen.NOW_PLAYING -> {
-                                NowPlayingScreen(
-                                    onBack = { currentScreen = Screen.LIBRARY },
-                                    onShowQueue = { currentScreen = Screen.QUEUE }
-                                )
-                            }
                             Screen.QUEUE -> {
                                 QueueScreen()
                             }
@@ -208,7 +292,10 @@ fun App() {
                                 val isScanning by libraryViewModel.isScanning.collectAsState()
 
                                 SettingsScreen(
-                                    onBack = { currentScreen = Screen.LIBRARY },
+                                    onBack = {
+                                        isLibraryExpanded = true
+                                        currentScreen = Screen.LIBRARY_SONGS
+                                    },
                                     onChangeMusicFolder = {
                                         val chooser = JFileChooser()
                                         chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
@@ -239,37 +326,21 @@ fun App() {
                             }
                         }
                     }
-                    
-                    // Player Bar persistente (siempre en bottom, excepto en NOW_PLAYING)
-                    if (currentScreen != Screen.NOW_PLAYING) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(androidx.compose.ui.Alignment.BottomCenter)
-                        ) {
-                            Column {
-                                // Snackbar de errores sobre el PlayerBar
-                                ErrorSnackbar(
-                                    error = displayedError,
-                                    onDismiss = { displayedError = null }
-                                )
-                                
-                                PlayerBar(
-                                    onClick = { currentScreen = Screen.NOW_PLAYING }
-                                )
-                            }
-                        }
-                    } else {
-                        // En NOW_PLAYING, mostrar errores en la parte inferior
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(androidx.compose.ui.Alignment.BottomCenter)
-                        ) {
+
+                    // Player Bar persistente (siempre en bottom)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(androidx.compose.ui.Alignment.BottomCenter)
+                    ) {
+                        Column {
+                            // Snackbar de errores sobre el PlayerBar
                             ErrorSnackbar(
                                 error = displayedError,
                                 onDismiss = { displayedError = null }
                             )
+
+                            PlayerBar()
                         }
                     }
                 }
@@ -282,9 +353,10 @@ fun App() {
  * Pantallas de navegación
  */
 enum class Screen {
-    LIBRARY,
+    LIBRARY_SONGS,
+    LIBRARY_ALBUMS,
+    LIBRARY_ARTISTS,
     RADIOS,
-    NOW_PLAYING,
     QUEUE,
     SETTINGS
 }
