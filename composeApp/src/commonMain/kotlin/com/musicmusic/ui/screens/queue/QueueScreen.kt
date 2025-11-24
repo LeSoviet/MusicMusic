@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.musicmusic.domain.model.Song
+import com.musicmusic.utils.TimeUtils
 import com.musicmusic.ui.components.AlbumCoverThumbnail
 import com.musicmusic.ui.screens.player.PlayerViewModel
 import org.koin.compose.koinInject
@@ -213,7 +214,7 @@ private fun QueueItem(
             
             // Duración
             Text(
-                text = formatDuration(song.duration),
+                text = TimeUtils.formatDuration(song.duration),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -233,12 +234,4 @@ private fun QueueItem(
     }
 }
 
-/**
- * Formatea duración en milisegundos a formato MM:SS
- */
-private fun formatDuration(durationMs: Long): String {
-    val totalSeconds = durationMs / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return String.format("%02d:%02d", minutes, seconds)
-}
+

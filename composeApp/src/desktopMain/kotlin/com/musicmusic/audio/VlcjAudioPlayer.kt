@@ -193,23 +193,18 @@ class VlcjAudioPlayer(
     }
     
     override suspend fun togglePlayPause() = withContext(Dispatchers.IO) {
-        println("🎵 togglePlayPause - Estado actual: ${_playbackState.value}, isPlaying: ${mediaPlayer.status().isPlaying}")
-        
         // Usar el estado real del reproductor de VLC en lugar del estado interno
         val isCurrentlyPlaying = mediaPlayer.status().isPlaying
         
         if (isCurrentlyPlaying) {
-            println("⏸️ Pausando reproducción")
             mediaPlayer.controls().pause()
         } else {
             // Si no está reproduciendo, verificar si hay contenido para reproducir
             when (_playbackState.value) {
                 PlaybackState.PAUSED, PlaybackState.BUFFERING -> {
-                    println("▶️ Reanudando reproducción")
                     mediaPlayer.controls().play()
                 }
                 PlaybackState.STOPPED -> {
-                    println("🆕 Iniciando reproducción desde STOPPED")
                     if (_currentSong.value != null) {
                         playCurrentSong()
                     } else if (queueList.isNotEmpty()) {
@@ -217,7 +212,6 @@ class VlcjAudioPlayer(
                     }
                 }
                 else -> {
-                    println("⚠️ Intentando reproducir desde estado: ${_playbackState.value}")
                     mediaPlayer.controls().play()
                 }
             }
@@ -305,7 +299,6 @@ class VlcjAudioPlayer(
     }
     
     override suspend fun setMute(mute: Boolean) = withContext(Dispatchers.IO) {
-        println("🔇 setMute: $mute")
         mediaPlayer.audio().isMute = mute
     }
     

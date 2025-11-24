@@ -58,6 +58,10 @@ kotlin {
             
             // Immutable Collections (performance)
             implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.7")
+            
+            // Coil Image Loading
+            implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
+            implementation("io.coil-kt.coil3:coil-network-ktor3:3.0.0-rc01")
         }
         
         desktopMain.dependencies {
@@ -80,7 +84,7 @@ kotlin {
             implementation("net.jthink:jaudiotagger:3.0.1")
             
             // SLF4J (Logging - requerido por algunas librerías)
-            implementation("org.slf4j:slf4j-simple:2.0.16")
+            implementation("org.slf4j:slf4j-simple:2.0.17")
             
             // File System
             implementation("com.squareup.okio:okio:3.7.0")

@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -102,7 +105,7 @@ private fun RadioTopBar(
         ) {
             // Título
             Text(
-                text = "📻 Radios Online",
+                text = "Radios Online",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -162,7 +165,7 @@ private fun RadioTopBar(
 /**
  * Panel de filtros.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun RadioFilters(
     selectedGenre: String?,
@@ -465,20 +468,4 @@ private fun EmptyRadioState(
     }
 }
 
-/**
- * FlowRow para chips (no disponible en Compose Desktop, implementación simple).
- */
-@Composable
-private fun FlowRow(
-    modifier: Modifier = Modifier,
-    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-    content: @Composable () -> Unit
-) {
-    // Implementación simple de FlowRow
-    Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = horizontalArrangement
-    ) {
-        content()
-    }
-}
+

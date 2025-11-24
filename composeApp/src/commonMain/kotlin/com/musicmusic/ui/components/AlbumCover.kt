@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import java.io.File
 
 /**
@@ -47,9 +48,12 @@ fun AlbumCover(
         contentAlignment = Alignment.Center
     ) {
         if (coverArtPath != null && File(coverArtPath).exists()) {
-            // TODO: Cargar imagen real (necesitarás una librería de imágenes como Coil o Kamel)
-            // Por ahora, placeholder
-            CoverPlaceholder(size = size)
+            AsyncImage(
+                model = File(coverArtPath),
+                contentDescription = "Album cover",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         } else {
             CoverPlaceholder(size = size)
         }

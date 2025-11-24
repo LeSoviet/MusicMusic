@@ -75,7 +75,8 @@ fun PlayerBar(
                 .height(120.dp),
             tonalElevation = 8.dp,
             shadowElevation = 8.dp,
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+            color = MaterialTheme.colorScheme.surface
         ) {
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -172,7 +173,8 @@ fun PlayerBar(
                             onClick = { playerViewModel.togglePlayPause() },
                             colors = IconButtonDefaults.filledIconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.primary
-                            )
+                            ),
+                            modifier = Modifier.size(48.dp)
                         ) {
                             val icon = when (playbackState) {
                                 PlaybackState.PLAYING, PlaybackState.BUFFERING -> Icons.Rounded.Pause
@@ -181,7 +183,8 @@ fun PlayerBar(
                             Icon(
                                 imageVector = icon,
                                 contentDescription = if (playbackState == PlaybackState.PLAYING) "Pause" else "Play",
-                                tint = MaterialTheme.colorScheme.onPrimary
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(24.dp)
                             )
                         }
 

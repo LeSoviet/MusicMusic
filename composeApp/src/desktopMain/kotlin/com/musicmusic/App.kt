@@ -218,130 +218,126 @@ fun App() {
                 }
                 
                 // Contenido principal
-                Box(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier.fillMaxSize()) {
                     // Pantalla principal con animaciones
-                    AppAnimations.AnimatedContent(
-                        targetState = currentScreen,
-                        transitionSpec = AppAnimations.slideHorizontalTransition()
-                    ) { screen ->
-                        when (screen) {
-                            Screen.LIBRARY_SONGS,
-                            Screen.LIBRARY_ALBUMS,
-                            Screen.LIBRARY_ARTISTS -> {
-                                val libraryViewModel = koinInject<com.musicmusic.ui.screens.library.LibraryViewModel>()
+                    Box(modifier = Modifier.weight(1f)) {
+                        AppAnimations.AnimatedContent(
+                            targetState = currentScreen,
+                            transitionSpec = AppAnimations.slideHorizontalTransition()
+                        ) { screen ->
+                            when (screen) {
+                                Screen.LIBRARY_SONGS,
+                                Screen.LIBRARY_ALBUMS,
+                                Screen.LIBRARY_ARTISTS -> {
+                                    val libraryViewModel = koinInject<com.musicmusic.ui.screens.library.LibraryViewModel>()
 
-                                // Sincronizar el tab seleccionado con la pantalla actual
-                                LaunchedEffect(screen) {
-                                    val tab = when (screen) {
-                                        Screen.LIBRARY_SONGS -> com.musicmusic.ui.screens.library.LibraryTab.SONGS
-                                        Screen.LIBRARY_ALBUMS -> com.musicmusic.ui.screens.library.LibraryTab.ALBUMS
-                                        Screen.LIBRARY_ARTISTS -> com.musicmusic.ui.screens.library.LibraryTab.ARTISTS
-                                        else -> com.musicmusic.ui.screens.library.LibraryTab.SONGS
+                                    // Sincronizar el tab seleccionado con la pantalla actual
+                                    LaunchedEffect(screen) {
+                                        val tab = when (screen) {
+                                            Screen.LIBRARY_SONGS -> com.musicmusic.ui.screens.library.LibraryTab.SONGS
+                                            Screen.LIBRARY_ALBUMS -> com.musicmusic.ui.screens.library.LibraryTab.ALBUMS
+                                            Screen.LIBRARY_ARTISTS -> com.musicmusic.ui.screens.library.LibraryTab.ARTISTS
+                                            else -> com.musicmusic.ui.screens.library.LibraryTab.SONGS
+                                        }
+                                        libraryViewModel.selectTab(tab)
                                     }
-                                    libraryViewModel.selectTab(tab)
-                                }
 
-                                LibraryScreen(
-                                    onScanDirectory = {
-                                        // Abrir selector de carpeta
-                                        val chooser = JFileChooser()
-                                        chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-                                        chooser.dialogTitle = "Select Music Folder"
+                                    LibraryScreen(
+                                        onScanDirectory = {
+                                            // Abrir selector de carpeta
+                                            val chooser = JFileChooser()
+                                            chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+                                            chooser.dialogTitle = "Select Music Folder"
 
-                                        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                            val selectedPath = chooser.selectedFile.absolutePath
-                                            libraryViewModel.scanDirectory(selectedPath)
-                                        }
-                                    },
-                                    onAddFiles = {
-                                        // Abrir selector de archivos múltiples
-                                        val chooser = JFileChooser()
-                                        chooser.isMultiSelectionEnabled = true
-                                        chooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                                        chooser.dialogTitle = "Add Music Files"
-
-                                        // Filtro de extensiones de audio
-                                        chooser.fileFilter = object : javax.swing.filechooser.FileFilter() {
-                                            override fun accept(f: File): Boolean {
-                                                if (f.isDirectory) return true
-                                                val extension = f.extension.lowercase()
-                                                return extension in listOf("mp3", "flac", "wav", "ogg", "m4a", "aac", "wma")
-                                            }
-
-                                            override fun getDescription() = "Audio Files (*.mp3, *.flac, *.wav, *.ogg, *.m4a, *.aac, *.wma)"
-                                        }
-
-                                        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                            val selectedFiles = chooser.selectedFiles.toList()
-                                            libraryViewModel.addFiles(selectedFiles)
-                                        }
-                                    },
-                                    libraryViewModel = libraryViewModel
-                                )
-                            }
-                            Screen.RADIOS -> {
-                                RadioScreen(
-                                    viewModel = koinInject()
-                                )
-                            }
-                            Screen.QUEUE -> {
-                                QueueScreen()
-                            }
-                            Screen.SETTINGS -> {
-                                val libraryViewModel = koinInject<com.musicmusic.ui.screens.library.LibraryViewModel>()
-                                val isScanning by libraryViewModel.isScanning.collectAsState()
-
-                                SettingsScreen(
-                                    onBack = {
-                                        isLibraryExpanded = true
-                                        currentScreen = Screen.LIBRARY_SONGS
-                                    },
-                                    onChangeMusicFolder = {
-                                        val chooser = JFileChooser()
-                                        chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-                                        chooser.dialogTitle = "Select Music Folder"
-
-                                        // Si ya hay una carpeta seleccionada, partir desde ahí
-                                        currentMusicFolder?.let { folder ->
-                                            chooser.currentDirectory = File(folder)
-                                        }
-
-                                        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                            val selectedPath = chooser.selectedFile.absolutePath
-                                            scope.launch {
-                                                userPreferences.setMusicFolderPath(selectedPath)
-                                                // Automáticamente escanear la nueva carpeta
+                                            if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                                                val selectedPath = chooser.selectedFile.absolutePath
                                                 libraryViewModel.scanDirectory(selectedPath)
                                             }
-                                        }
-                                    },
-                                    onUpdateLibrary = {
-                                        currentMusicFolder?.let { folder ->
-                                            libraryViewModel.scanDirectory(folder)
-                                        }
-                                    },
-                                    currentMusicFolder = currentMusicFolder,
-                                    isScanning = isScanning
-                                )
+                                        },
+                                        onAddFiles = {
+                                            // Abrir selector de archivos múltiples
+                                            val chooser = JFileChooser()
+                                            chooser.isMultiSelectionEnabled = true
+                                            chooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                                            chooser.dialogTitle = "Add Music Files"
+
+                                            // Filtro de extensiones de audio
+                                            chooser.fileFilter = object : javax.swing.filechooser.FileFilter() {
+                                                override fun accept(f: File): Boolean {
+                                                    if (f.isDirectory) return true
+                                                    val extension = f.extension.lowercase()
+                                                    return extension in listOf("mp3", "flac", "wav", "ogg", "m4a", "aac", "wma")
+                                                }
+
+                                                override fun getDescription() = "Audio Files (*.mp3, *.flac, *.wav, *.ogg, *.m4a, *.aac, *.wma)"
+                                            }
+
+                                            if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                                                val selectedFiles = chooser.selectedFiles.toList()
+                                                libraryViewModel.addFiles(selectedFiles)
+                                            }
+                                        },
+                                        libraryViewModel = libraryViewModel
+                                    )
+                                }
+                                Screen.RADIOS -> {
+                                    RadioScreen(
+                                        viewModel = koinInject()
+                                    )
+                                }
+                                Screen.QUEUE -> {
+                                    QueueScreen()
+                                }
+                                Screen.SETTINGS -> {
+                                    val libraryViewModel = koinInject<com.musicmusic.ui.screens.library.LibraryViewModel>()
+                                    val isScanning by libraryViewModel.isScanning.collectAsState()
+
+                                    SettingsScreen(
+                                        onBack = {
+                                            isLibraryExpanded = true
+                                            currentScreen = Screen.LIBRARY_SONGS
+                                        },
+                                        onChangeMusicFolder = {
+                                            val chooser = JFileChooser()
+                                            chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+                                            chooser.dialogTitle = "Select Music Folder"
+
+                                            // Si ya hay una carpeta seleccionada, partir desde ahí
+                                            currentMusicFolder?.let { folder ->
+                                                chooser.currentDirectory = File(folder)
+                                            }
+
+                                            if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                                                val selectedPath = chooser.selectedFile.absolutePath
+                                                scope.launch {
+                                                    userPreferences.setMusicFolderPath(selectedPath)
+                                                    // Automáticamente escanear la nueva carpeta
+                                                    libraryViewModel.scanDirectory(selectedPath)
+                                                }
+                                            }
+                                        },
+                                        onUpdateLibrary = {
+                                            currentMusicFolder?.let { folder ->
+                                                libraryViewModel.scanDirectory(folder)
+                                            }
+                                        },
+                                        currentMusicFolder = currentMusicFolder,
+                                        isScanning = isScanning
+                                    )
+                                }
                             }
                         }
                     }
 
                     // Player Bar persistente (siempre en bottom)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(androidx.compose.ui.Alignment.BottomCenter)
-                    ) {
-                        Column {
-                            // Snackbar de errores sobre el PlayerBar
-                            ErrorSnackbar(
-                                error = displayedError,
-                                onDismiss = { displayedError = null }
-                            )
+                    Column {
+                        // Snackbar de errores sobre el PlayerBar
+                        ErrorSnackbar(
+                            error = displayedError,
+                            onDismiss = { displayedError = null }
+                        )
 
-                            PlayerBar()
-                        }
+                        PlayerBar()
                     }
                 }
             }

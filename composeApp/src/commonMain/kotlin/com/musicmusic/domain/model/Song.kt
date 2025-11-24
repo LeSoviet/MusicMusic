@@ -1,5 +1,7 @@
 package com.musicmusic.domain.model
 
+import com.musicmusic.utils.TimeUtils
+
 /**
  * Representa una canción en la biblioteca local o desde una fuente de streaming.
  *
@@ -56,10 +58,7 @@ data class Song(
      * Retorna la duración formateada como "mm:ss"
      */
     fun getFormattedDuration(): String {
-        val totalSeconds = duration / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        return "%d:%02d".format(minutes, seconds)
+        return TimeUtils.formatDuration(duration)
     }
     
     /**

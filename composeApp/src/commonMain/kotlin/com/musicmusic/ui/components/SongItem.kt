@@ -14,6 +14,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.musicmusic.domain.model.Song
+import com.musicmusic.utils.TimeUtils
 
 /**
  * Item de lista para mostrar una canción.
@@ -111,7 +112,7 @@ fun SongItem(
             
             // Duración
             Text(
-                text = formatDuration(song.duration),
+                text = TimeUtils.formatDuration(song.duration),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -247,12 +248,4 @@ fun SongItem(
     }
 }
 
-/**
- * Formatea duración en milisegundos a formato MM:SS
- */
-private fun formatDuration(durationMs: Long): String {
-    val totalSeconds = durationMs / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return String.format("%d:%02d", minutes, seconds)
-}
+

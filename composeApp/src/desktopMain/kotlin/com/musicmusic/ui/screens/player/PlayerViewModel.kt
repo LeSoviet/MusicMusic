@@ -8,6 +8,7 @@ import com.musicmusic.domain.audio.AudioPlayer
 import com.musicmusic.domain.model.PlaybackState
 import com.musicmusic.domain.model.RepeatMode
 import com.musicmusic.domain.model.Song
+import com.musicmusic.utils.TimeUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -363,10 +364,7 @@ actual class PlayerViewModel(
     }
     
     private fun formatTime(timeMs: Long): String {
-        val totalSeconds = timeMs / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        return "%d:%02d".format(minutes, seconds)
+        return TimeUtils.formatDuration(timeMs)
     }
 
     // ========== Favorites ==========
