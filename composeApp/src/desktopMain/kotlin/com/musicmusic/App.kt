@@ -1,6 +1,8 @@
 package com.musicmusic
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -30,7 +32,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Aplicación principal de MusicMusic.
- * 
+ *
  * Gestiona:
  * - Navegación entre pantallas
  * - Player bar persistente
@@ -38,7 +40,7 @@ import kotlinx.coroutines.launch
  * - Atajos de teclado globales
  */
 @Composable
-fun App() {
+fun App(isDraggingOver: Boolean = false) {
     val themeManager = koinInject<ThemeManager>()
     val playerViewModel = koinInject<PlayerViewModel>()
     val userPreferences = koinInject<UserPreferences>()
@@ -338,6 +340,42 @@ fun App() {
                         )
 
                         PlayerBar()
+                    }
+                }
+            }
+
+            // Overlay visual para drag & drop
+            if (isDraggingOver) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                        .border(
+                            width = 4.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CloudUpload,
+                            contentDescription = null,
+                            modifier = Modifier.size(96.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Drop files or folders here",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Music files and folders will be added to your library",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
                     }
                 }
             }
