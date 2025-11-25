@@ -8,6 +8,9 @@ import com.musicmusic.domain.audio.AudioPlayer
 import com.musicmusic.domain.model.PlaybackState
 import com.musicmusic.domain.model.RepeatMode
 import com.musicmusic.domain.model.Song
+import com.musicmusic.domain.model.EqualizerSettings
+import com.musicmusic.domain.model.EqualizerPreset
+import com.musicmusic.domain.model.VolumeNormalizerSettings
 import com.musicmusic.utils.TimeUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +18,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlin.math.min
 
 /**
  * Implementación Desktop de PlayerViewModel con persistencia de preferencias.
@@ -73,6 +77,26 @@ actual class PlayerViewModel(
     
     actual val currentIndex: StateFlow<Int> = audioPlayer.currentIndex
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+    
+    // ========== Estados del ecualizador ==========
+    
+    private val _equalizerSettings = mutableStateOf(com.musicmusic.domain.model.EqualizerSettings())
+    actual val equalizerSettings: com.musicmusic.domain.model.EqualizerSettings
+        get() = _equalizerSettings.value
+    
+    private val _availablePresets = mutableStateOf<List<String>>(emptyList())
+    actual val availablePresets: List<String>
+        get() = _availablePresets.value
+    
+    private val _equalizerBands = mutableStateOf<List<Float>>(emptyList())
+    actual val equalizerBands: List<Float>
+        get() = _equalizerBands.value
+    
+    // ========== Estados del normalizador de volumen ==========
+    
+    private val _volumeNormalizerSettings = mutableStateOf(com.musicmusic.domain.model.VolumeNormalizerSettings())
+    actual val volumeNormalizerSettings: com.musicmusic.domain.model.VolumeNormalizerSettings
+        get() = _volumeNormalizerSettings.value
     
     // ========== Estado local del UI ==========
     
@@ -133,6 +157,9 @@ actual class PlayerViewModel(
                 audioPlayer.setRepeatMode(mode)
             }
         }
+        
+        // Cargar configuración del ecualizador
+        loadEqualizerSettings()
     }
     
     // ========== Acciones de reproducción ==========
@@ -367,6 +394,137 @@ actual class PlayerViewModel(
         return TimeUtils.formatDuration(timeMs)
     }
 
+    // ========== Control de ecualizador ==========
+    
+    /**
+     * Carga la configuración del ecualizador desde el reproductor.
+     */
+    private fun loadEqualizerSettings() {
+        viewModelScope.launch {
+            try {
+                // Obtener configuración actual
+                val settings = audioPlayer.getEqualizerSettings()
+                _equalizerSettings.value = settings
+                
+                // Obtener presets disponibles
+                val presets = audioPlayer.getAvailablePresets()
+                _availablePresets.value = presets
+                
+                // Obtener bandas del ecualizador
+                val bands = audioPlayer.getEqualizerBands()
+                _equalizerBands.value = bands
+            } catch (e: Exception) {
+                // Manejar errores de carga
+                e.printStackTrace()
+            }
+        }
+    }
+    
+    /**
+     * Establece la configuración del ecualizador.
+     */
+    actual fun setEqualizerSettings(settings: EqualizerSettings) {
+        viewModelScope.launch {
+            try {
+                audioPlayer.setEqualizerSettings(settings)
+                _equalizerSettings.value = settings
+            } catch (e: Exception) {
+                // Manejar errores de configuración
+                e.printStackTrace()
+            }
+        }
+    }
+    
+    /**
+     * Aplica un preset predefinido del ecualizador.
+     */
+    actual fun applyEqualizerPreset(preset: EqualizerPreset) {
+        viewModelScope.launch {
+            try {
+                audioPlayer.applyEqualizerPreset(preset)
+                
+                // Actualizar configuración local
+                val newSettings = EqualizerSettings(
+                    isEnabled = true,
+                    preamp = preset.preamp,
+                    bands = preset.bands
+                )
+                _equalizerSettings.value = newSettings
+            } catch (e: Exception) {
+                // Manejar errores de aplicación de preset
+                e.printStackTrace()
+            }
+        }
+    }
+    
+    /**
+     * Alterna el estado del ecualizador (activado/desactivado).
+     */
+    actual fun toggleEqualizer() {
+        val currentSettings = _equalizerSettings.value
+        val newSettings = currentSettings.copy(isEnabled = !currentSettings.isEnabled)
+        setEqualizerSettings(newSettings)
+    }
+    
+    /**
+     * Establece el valor de preamplificación del ecualizador.
+     */
+    actual fun setEqualizerPreamp(preamp: Float) {
+        val currentSettings = _equalizerSettings.value
+        val newSettings = currentSettings.copy(preamp = preamp)
+        setEqualizerSettings(newSettings)
+    }
+    
+    /**
+     * Establece el valor de ganancia para una banda específica del ecualizador.
+     */
+    actual fun setEqualizerBand(bandIndex: Int, gain: Float) {
+        val currentSettings = _equalizerSettings.value
+        val newBands = currentSettings.bands.toMutableList()
+        
+        // Asegurarse de que el índice sea válido
+        if (bandIndex in newBands.indices) {
+            newBands[bandIndex] = gain
+            val newSettings = currentSettings.copy(bands = newBands)
+            setEqualizerSettings(newSettings)
+        }
+    }
+    
+    // ========== Control de normalización de volumen ==========
+    
+    /**
+     * Establece la configuración del normalizador de volumen.
+     */
+    actual fun setVolumeNormalizerSettings(settings: VolumeNormalizerSettings) {
+        viewModelScope.launch {
+            try {
+                audioPlayer.setVolumeNormalizerSettings(settings)
+                _volumeNormalizerSettings.value = settings
+            } catch (e: Exception) {
+                // Manejar errores de configuración
+                e.printStackTrace()
+            }
+        }
+    }
+    
+    /**
+     * Alterna el estado del normalizador de volumen (activado/desactivado).
+     */
+    actual fun toggleVolumeNormalizer() {
+        val currentSettings = _volumeNormalizerSettings.value
+        val newSettings = currentSettings.copy(isEnabled = !currentSettings.isEnabled)
+        setVolumeNormalizerSettings(newSettings)
+    }
+    
+    /**
+     * Establece el nivel del normalizador de volumen.
+     */
+    actual fun setVolumeNormalizerLevel(level: Float) {
+        val currentSettings = _volumeNormalizerSettings.value
+        val newSettings = currentSettings.copy(level = level.coerceIn(0f, 1f))
+        setVolumeNormalizerSettings(newSettings)
+    }
+    
     // ========== Favorites ==========
 
     actual fun toggleFavorite(songId: String) {

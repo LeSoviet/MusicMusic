@@ -1,8 +1,11 @@
 package com.musicmusic
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -15,6 +18,7 @@ import com.musicmusic.domain.error.ErrorHandler
 import com.musicmusic.ui.animation.AppAnimations
 import com.musicmusic.ui.components.ErrorSnackbar
 import com.musicmusic.ui.components.PlayerBar
+import com.musicmusic.ui.components.EqualizerPanel
 import com.musicmusic.ui.keyboard.KeyboardShortcuts
 import com.musicmusic.ui.screens.library.LibraryScreen
 import com.musicmusic.ui.screens.player.NowPlayingScreen
@@ -63,6 +67,7 @@ fun App(isDraggingOver: Boolean = false) {
     MusicMusicTheme(darkTheme = isDarkMode) {
         var currentScreen by remember { mutableStateOf(Screen.LIBRARY_SONGS) }
         var isLibraryExpanded by remember { mutableStateOf(true) }
+        var showEqualizerPanel by remember { mutableStateOf(false) }
 
         Surface(
             modifier = Modifier
@@ -339,7 +344,30 @@ fun App(isDraggingOver: Boolean = false) {
                             onDismiss = { displayedError = null }
                         )
 
-                        PlayerBar()
+                        PlayerBar(
+                            onToggleEqualizer = { showEqualizerPanel = !showEqualizerPanel }
+                        )
+                        
+                        // Panel de ecualización
+                        AnimatedVisibility(
+                            visible = showEqualizerPanel,
+                            enter = slideInVertically(tween(300)) { it } + fadeIn(tween(300)),
+                            exit = slideOutVertically(tween(300)) { it } + fadeOut(tween(300))
+                        ) {
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                tonalElevation = 8.dp,
+                                shadowElevation = 8.dp,
+                                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                                color = MaterialTheme.colorScheme.surface
+                            ) {
+                                EqualizerPanel(
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -3,6 +3,9 @@ package com.musicmusic.domain.audio
 import com.musicmusic.domain.model.PlaybackState
 import com.musicmusic.domain.model.RepeatMode
 import com.musicmusic.domain.model.Song
+import com.musicmusic.domain.model.EqualizerSettings
+import com.musicmusic.domain.model.EqualizerPreset
+import com.musicmusic.domain.model.VolumeNormalizerSettings
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -145,6 +148,59 @@ interface AudioPlayer {
      * @param mute true para silenciar, false para activar
      */
     suspend fun setMute(mute: Boolean)
+    
+    // ========== Control de ecualizador ==========
+    
+    /**
+     * Establece la configuración del ecualizador.
+     * 
+     * @param settings Configuración del ecualizador
+     */
+    suspend fun setEqualizerSettings(settings: EqualizerSettings)
+    
+    /**
+     * Aplica un preset predefinido del ecualizador.
+     * 
+     * @param preset Preset a aplicar
+     */
+    suspend fun applyEqualizerPreset(preset: EqualizerPreset)
+    
+    /**
+     * Obtiene la configuración actual del ecualizador.
+     * 
+     * @return Configuración actual del ecualizador
+     */
+    fun getEqualizerSettings(): EqualizerSettings
+    
+    /**
+     * Obtiene la lista de presets disponibles.
+     * 
+     * @return Lista de nombres de presets
+     */
+    fun getAvailablePresets(): List<String>
+    
+    /**
+     * Obtiene las frecuencias de las bandas del ecualizador.
+     * 
+     * @return Lista de frecuencias en Hz
+     */
+    fun getEqualizerBands(): List<Float>
+    
+    // ========== Control de normalización de volumen ==========
+    
+    /**
+     * Establece la configuración del normalizador de volumen.
+     * 
+     * @param settings Configuración del normalizador
+     */
+    suspend fun setVolumeNormalizerSettings(settings: VolumeNormalizerSettings)
+    
+    /**
+     * Obtiene la configuración actual del normalizador de volumen.
+     * 
+     * @return Configuración actual del normalizador
+     */
+    fun getVolumeNormalizerSettings(): VolumeNormalizerSettings
     
     // ========== Control de cola y modos ==========
     

@@ -6,6 +6,9 @@ import com.musicmusic.domain.error.ErrorHandler
 import com.musicmusic.domain.model.PlaybackState
 import com.musicmusic.domain.model.RepeatMode
 import com.musicmusic.domain.model.Song
+import com.musicmusic.domain.model.EqualizerSettings
+import com.musicmusic.domain.model.EqualizerPreset
+import com.musicmusic.domain.model.VolumeNormalizerSettings
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
+import uk.co.caprica.vlcj.player.base.Equalizer
 import java.io.File
 
 /**
@@ -40,6 +44,12 @@ class VlcjAudioPlayer(
     
     // MediaPlayer de VLCJ para reproducción de audio
     private val mediaPlayer: MediaPlayer = mediaPlayerFactory.mediaPlayers().newMediaPlayer()
+    
+    // Ecualizador de audio
+    private var equalizer: Equalizer? = null
+    
+    // Configuración del ecualizador
+    private var equalizerSettings = com.musicmusic.domain.model.EqualizerSettings()
     
     // ========== Estados internos ==========
     
@@ -502,6 +512,110 @@ class VlcjAudioPlayer(
     private fun stopPositionUpdates() {
         positionUpdateJob?.cancel()
         positionUpdateJob = null
+    }
+    
+    // ========== Control de ecualizador ==========
+    
+    /**
+     * Establece la configuración del ecualizador.
+     * 
+     * @param settings Configuración del ecualizador
+     */
+    override suspend fun setEqualizerSettings(settings: EqualizerSettings) = withContext(Dispatchers.IO) {
+        equalizerSettings = settings
+        
+        if (settings.isEnabled) {
+            // Crear o actualizar el ecualizador
+            if (equalizer == null) {
+                equalizer = mediaPlayerFactory.equalizer().newEqualizer()
+            }
+            
+            // Aplicar preamplificación
+            equalizer?.setPreamp(settings.preamp)
+            
+            // Aplicar ganancias de las bandas
+            val bandCount = equalizer?.bandCount() ?: 0
+            for (i in 0 until minOf(bandCount, settings.bands.size)) {
+                equalizer?.setAmp(i, settings.bands[i])
+            }
+            
+            // Aplicar el ecualizador al reproductor
+            mediaPlayer.audio().setEqualizer(equalizer)
+        } else {
+            // Desactivar el ecualizador
+            mediaPlayer.audio().setEqualizer(null)
+            equalizer = null
+        }
+    }
+    
+    /**
+     * Obtiene la configuración actual del ecualizador.
+     * 
+     * @return Configuración actual del ecualizador
+     */
+    override fun getEqualizerSettings(): EqualizerSettings = equalizerSettings
+    
+    /**
+     * Aplica un preset predefinido del ecualizador.
+     * 
+     * @param preset Preset a aplicar
+     */
+    override suspend fun applyEqualizerPreset(preset: EqualizerPreset) = withContext(Dispatchers.IO) {
+        val settings = EqualizerSettings(
+            isEnabled = true,
+            preamp = preset.preamp,
+            bands = preset.bands
+        )
+        setEqualizerSettings(settings)
+    }
+    
+    /**
+     * Obtiene la lista de presets disponibles.
+     * 
+     * @return Lista de nombres de presets
+     */
+    override fun getAvailablePresets(): List<String> {
+        return try {
+            mediaPlayerFactory.equalizer().presets()
+        } catch (e: Exception) {
+            listOf("Flat", "Classical", "Club", "Dance", "Full Bass", "Full Treble")
+        }
+    }
+    
+    /**
+     * Obtiene las frecuencias de las bandas del ecualizador.
+     * 
+     * @return Lista de frecuencias en Hz
+     */
+    override fun getEqualizerBands(): List<Float> {
+        return try {
+            mediaPlayerFactory.equalizer().bands()
+        } catch (e: Exception) {
+            listOf(31.25f, 62.5f, 125f, 250f, 500f, 1000f, 2000f, 4000f, 8000f, 16000f)
+        }
+    }
+    
+    // ========== Control de normalización de volumen ==========
+    
+    /**
+     * Establece la configuración del normalizador de volumen.
+     * 
+     * @param settings Configuración del normalizador
+     */
+    override suspend fun setVolumeNormalizerSettings(settings: VolumeNormalizerSettings) = withContext(Dispatchers.IO) {
+        // La normalización de volumen en VLCJ se puede implementar a través de filtros
+        // Por ahora, solo almacenamos la configuración
+        // TODO: Implementar normalización de volumen real
+    }
+    
+    /**
+     * Obtiene la configuración actual del normalizador de volumen.
+     * 
+     * @return Configuración actual del normalizador
+     */
+    override fun getVolumeNormalizerSettings(): VolumeNormalizerSettings {
+        // TODO: Implementar obtención real de configuración
+        return VolumeNormalizerSettings()
     }
     
     // ========== Lifecycle ==========

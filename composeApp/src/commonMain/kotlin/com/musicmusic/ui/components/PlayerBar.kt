@@ -32,6 +32,7 @@ import org.koin.compose.koinInject
 @Composable
 fun PlayerBar(
     modifier: Modifier = Modifier,
+    onToggleEqualizer: (() -> Unit)? = null,
     playerViewModel: PlayerViewModel = koinInject()
 ) {
     val currentSong by playerViewModel.currentSong.collectAsState()
@@ -237,6 +238,17 @@ fun PlayerBar(
                                 } else {
                                     MaterialTheme.colorScheme.onSurfaceVariant
                                 }
+                            )
+                        }
+                        
+                        // Equalizer
+                        IconButton(
+                            onClick = { onToggleEqualizer?.invoke() }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Equalizer,
+                                contentDescription = "Equalizer",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }

@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.musicmusic.ui.components.*
 import com.musicmusic.domain.model.PlaybackState
 import com.musicmusic.domain.model.RepeatMode
+import com.musicmusic.ui.components.EqualizerPanel
 import org.koin.compose.koinInject
 
 @Composable
@@ -28,9 +29,17 @@ fun NowPlayingScreen(
     val repeatMode by playerViewModel.repeatMode.collectAsState()
     val volume by playerViewModel.volume.collectAsState()
     val progress = playerViewModel.getProgress()
-
+    
+    // Estado para mostrar/ocultar el panel del ecualizador
+    var showEqualizer by remember { mutableStateOf(false) }
+    
     Scaffold(
-        topBar = { NowPlayingTopBar(onBack = onBack) }
+        topBar = { 
+            NowPlayingTopBar(
+                onBack = onBack,
+                onToggleEqualizer = { showEqualizer = !showEqualizer }
+            ) 
+        }
     ) { paddingValues ->
 
         BoxWithConstraints(
@@ -303,6 +312,15 @@ fun NowPlayingScreen(
                     }
                 }
                 
+                // Panel del ecualizador (solo si está activo)
+                if (showEqualizer) {
+                    EqualizerPanel(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp)
+                    )
+                }
+                
                 // Spacer flexible abajo
                 Spacer(modifier = Modifier.weight(1f, fill = false))
             }
@@ -312,7 +330,10 @@ fun NowPlayingScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun NowPlayingTopBar(onBack: () -> Unit) {
+private fun NowPlayingTopBar(
+    onBack: () -> Unit,
+    onToggleEqualizer: () -> Unit
+) {
     TopAppBar(
         title = {},
         navigationIcon = {
@@ -324,6 +345,12 @@ private fun NowPlayingTopBar(onBack: () -> Unit) {
             }
         },
         actions = {
+            IconButton(onClick = onToggleEqualizer) {
+                Icon(
+                    imageVector = Icons.Rounded.Equalizer,
+                    contentDescription = "Toggle equalizer"
+                )
+            }
             IconButton(onClick = { /* TODO */ }) {
                 Icon(
                     imageVector = Icons.Rounded.MoreVert,

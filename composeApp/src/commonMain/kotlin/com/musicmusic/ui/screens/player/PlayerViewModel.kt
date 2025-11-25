@@ -3,6 +3,9 @@ package com.musicmusic.ui.screens.player
 import com.musicmusic.domain.model.PlaybackState
 import com.musicmusic.domain.model.RepeatMode
 import com.musicmusic.domain.model.Song
+import com.musicmusic.domain.model.EqualizerSettings
+import com.musicmusic.domain.model.EqualizerPreset
+import com.musicmusic.domain.model.VolumeNormalizerSettings
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -24,6 +27,11 @@ expect class PlayerViewModel {
     val repeatMode: StateFlow<RepeatMode>
     val queue: StateFlow<List<Song>>
     val currentIndex: StateFlow<Int>
+    
+    val equalizerSettings: EqualizerSettings
+    val availablePresets: List<String>
+    val equalizerBands: List<Float>
+    val volumeNormalizerSettings: VolumeNormalizerSettings
     
     val isVolumeSliderVisible: Boolean
     val isSeeking: Boolean
@@ -63,6 +71,18 @@ expect class PlayerViewModel {
     fun clearQueue()
     fun playAtIndex(index: Int)
     fun removeFromQueue(index: Int)
+    
+    // ========== Control de ecualizador ==========
+    fun setEqualizerSettings(settings: EqualizerSettings)
+    fun applyEqualizerPreset(preset: EqualizerPreset)
+    fun toggleEqualizer()
+    fun setEqualizerPreamp(preamp: Float)
+    fun setEqualizerBand(bandIndex: Int, gain: Float)
+    
+    // ========== Control de normalización de volumen ==========
+    fun setVolumeNormalizerSettings(settings: VolumeNormalizerSettings)
+    fun toggleVolumeNormalizer()
+    fun setVolumeNormalizerLevel(level: Float)
     
     fun getFormattedPosition(): String
     fun getFormattedDuration(): String
