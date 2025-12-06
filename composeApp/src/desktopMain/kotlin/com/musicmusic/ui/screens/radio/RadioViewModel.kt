@@ -16,9 +16,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel para la pantalla de radios.
- * 
- * Cada instancia tiene su propio CoroutineScope que se limpia al destruir el ViewModel.
+ * ViewModel for the radio screen.
+ *
+ * Each instance has its own CoroutineScope that is cleaned up when the ViewModel is destroyed.
  */
 class RadioViewModel(
     private val radioRepository: RadioRepository,
@@ -27,37 +27,37 @@ class RadioViewModel(
     
     // ViewModel-specific coroutine scope
     private val viewModelScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
-    // Estado de carga
+    // Loading state
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-    
-    // Lista de radios
+
+    // Radio list
     private val _radios = MutableStateFlow<List<Radio>>(emptyList())
     val radios: StateFlow<List<Radio>> = _radios.asStateFlow()
-    
-    // Radio actualmente seleccionada
+
+    // Currently selected radio
     private val _selectedRadio = MutableStateFlow<Radio?>(null)
     val selectedRadio: StateFlow<Radio?> = _selectedRadio.asStateFlow()
-    
-    // Búsqueda
+
+    // Search
     var searchQuery by mutableStateOf("")
         private set
-    
-    // Filtros
+
+    // Filters
     private val _selectedGenre = MutableStateFlow<String?>(null)
     val selectedGenre: StateFlow<String?> = _selectedGenre.asStateFlow()
-    
+
     private val _selectedCountry = MutableStateFlow<String?>(null)
     val selectedCountry: StateFlow<String?> = _selectedCountry.asStateFlow()
-    
-    // Géneros y países disponibles
+
+    // Available genres and countries
     private val _availableGenres = MutableStateFlow<List<String>>(emptyList())
     val availableGenres: StateFlow<List<String>> = _availableGenres.asStateFlow()
-    
+
     private val _availableCountries = MutableStateFlow<List<String>>(emptyList())
     val availableCountries: StateFlow<List<String>> = _availableCountries.asStateFlow()
-    
-    // Vista actual (todas, favoritas)
+
+    // Current view (all, favorites)
     private val _showOnlyFavorites = MutableStateFlow(false)
     val showOnlyFavorites: StateFlow<Boolean> = _showOnlyFavorites.asStateFlow()
     

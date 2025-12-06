@@ -2,6 +2,8 @@ package com.musicmusic.ui.screens.radio
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,7 +29,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 
 /**
- * Pantalla principal de radios online.
+ * Main online radio screen with genre categorization.
  */
 @OptIn(FlowPreview::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +52,10 @@ fun RadioScreen(
                 searchQuery = viewModel.searchQuery,
                 onSearchQueryChange = viewModel::onSearchQueryChange,
                 showOnlyFavorites = showOnlyFavorites,
-                onToggleFavorites = viewModel::toggleShowFavorites
+                onToggleFavorites = viewModel::toggleShowFavorites,
+                selectedGenre = selectedGenre,
+                availableGenres = availableGenres,
+                onGenreSelected = viewModel::selectGenre
             )
         }
     ) { paddingValues ->
@@ -59,7 +64,7 @@ fun RadioScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Lista de radios
+            // Radio list
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -73,10 +78,11 @@ fun RadioScreen(
                     hasFilters = selectedGenre != null || selectedCountry != null || viewModel.searchQuery.isNotBlank()
                 )
             } else {
-                RadioGrid(
+                RadioList(
                     radios = radios,
                     onRadioClick = viewModel::playRadio,
-                    onToggleFavorite = viewModel::toggleFavorite
+                    onToggleFavorite = viewModel::toggleFavorite,
+                    selectedGenre = selectedGenre
                 )
             }
         }
@@ -84,78 +90,114 @@ fun RadioScreen(
 }
 
 /**
- * Barra superior con búsqueda y controles.
+ * Top bar with search and genre filter controls.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun RadioTopBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     showOnlyFavorites: Boolean,
-    onToggleFavorites: () -> Unit
+    onToggleFavorites: () -> Unit,
+    selectedGenre: String?,
+    availableGenres: List<String>,
+    onGenreSelected: (String?) -> Unit
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 2.dp
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(12.dp)
         ) {
-            // Título
+            // Title
             Text(
-                text = "Radios Online",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
+                text = "Radio Stations",
+                style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Barra de búsqueda
+                // Search bar
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = onSearchQueryChange,
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Buscar radios...") },
+                    placeholder = { Text("Search radios...") },
                     leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = "")
+                        Icon(Icons.Default.Search, contentDescription = "", modifier = Modifier.size(18.dp))
                     },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { onSearchQueryChange("") }) {
-                                Icon(Icons.Default.Clear, contentDescription = "")
+                                Icon(Icons.Default.Clear, contentDescription = "", modifier = Modifier.size(18.dp))
                             }
                         }
                     },
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                        focusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        unfocusedIndicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                    )
                 )
 
-                // Botón de favoritos
+                // Favorites button
                 IconButton(
                     onClick = onToggleFavorites,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            color = if (showOnlyFavorites) MaterialTheme.colorScheme.primaryContainer
-                            else MaterialTheme.colorScheme.surfaceVariant,
-                            shape = CircleShape
-                        )
+                    modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
                         imageVector = if (showOnlyFavorites) Icons.Default.Favorite
                         else Icons.Default.FavoriteBorder,
-                        contentDescription = "",
+                        contentDescription = "Favorites",
                         tint = if (showOnlyFavorites) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
                     )
+                }
+            }
+
+            // Genre filters
+            if (availableGenres.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    // All genres chip
+                    FilterChip(
+                        selected = selectedGenre == null,
+                        onClick = { onGenreSelected(null) },
+                        label = { Text("All", style = MaterialTheme.typography.labelSmall) },
+                        modifier = Modifier.height(28.dp)
+                    )
+
+                    availableGenres.forEach { genre ->
+                        FilterChip(
+                            selected = selectedGenre == genre,
+                            onClick = { onGenreSelected(if (selectedGenre == genre) null else genre) },
+                            label = { Text(genre, style = MaterialTheme.typography.labelSmall) },
+                            modifier = Modifier.height(28.dp)
+                        )
+                    }
                 }
             }
         }
@@ -257,35 +299,60 @@ private fun RadioFilters(
 }
 
 /**
- * Lista de radios (diseño similar a SongItem).
+ * List of radios grouped by genre.
  */
 @Composable
-private fun RadioGrid(
+private fun RadioList(
     radios: List<Radio>,
     onRadioClick: (Radio) -> Unit,
-    onToggleFavorite: (String) -> Unit
+    onToggleFavorite: (String) -> Unit,
+    selectedGenre: String?
 ) {
+    val radiosByGenre = if (selectedGenre != null) {
+        mapOf(selectedGenre to radios)
+    } else {
+        radios.groupBy { it.genre ?: "Unknown" }
+    }
+
     LazyColumn(
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
-            top = 16.dp,
-            bottom = 120.dp  // Espacio extra para el PlayerBar
+            top = 8.dp,
+            bottom = 80.dp  // Extra space for PlayerBar
         ),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(radios, key = { it.id }) { radio ->
-            RadioItem(
-                radio = radio,
-                onClick = { onRadioClick(radio) },
-                onToggleFavorite = { onToggleFavorite(radio.id) }
-            )
+        radiosByGenre.forEach { (genre, genreRadios) ->
+            // Genre header
+            if (selectedGenre == null) {
+                item(key = "header_$genre") {
+                    Text(
+                        text = genre,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+            }
+
+            // Radios in genre
+            items(
+                items = genreRadios,
+                key = { it.id }
+            ) { radio ->
+                RadioItem(
+                    radio = radio,
+                    onClick = { onRadioClick(radio) },
+                    onToggleFavorite = { onToggleFavorite(radio.id) }
+                )
+            }
         }
     }
 }
 
 /**
- * Item de radio individual (diseño similar a SongItem).
+ * Individual radio item (compact design).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -294,26 +361,40 @@ private fun RadioItem(
     onClick: () -> Unit,
     onToggleFavorite: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+
     Surface(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp),
+            .clip(RoundedCornerShape(8.dp)),
         shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surface
+        color = if (isHovered) {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f)
+        } else {
+            Color.Transparent
+        },
+        border = if (isHovered) {
+            androidx.compose.foundation.BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+            )
+        } else null
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .hoverable(interactionSource),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Icono de radio
+            // Radio icon
             Surface(
-                modifier = Modifier.size(48.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(6.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -322,110 +403,84 @@ private fun RadioItem(
                     Icon(
                         imageVector = Icons.Default.Radio,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(24.dp)
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
-            // Información de la radio
+            // Radio info
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = radio.name,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Género
-                    if (radio.genre != null) {
+                    // Country
+                    if (radio.country != null) {
                         Text(
-                            text = radio.genre,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
+                            text = radio.country,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
 
-                    // País
-                    if (radio.country != null && radio.genre != null) {
-                        Text(
-                            text = "•",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    if (radio.country != null) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Public,
-                                contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Text(
-                                text = radio.country,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-
                     // Bitrate
                     if (radio.bitrate != null) {
-                        if (radio.country != null || radio.genre != null) {
+                        if (radio.country != null) {
                             Text(
                                 text = "•",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Text(
                             text = "${radio.bitrate}kbps",
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
 
-            // Botón de favorito
-            IconButton(
-                onClick = onToggleFavorite,
-                modifier = Modifier.size(40.dp)
+            // Favorite button
+            AnimatedVisibility(
+                visible = radio.isFavorite || isHovered,
+                enter = fadeIn(),
+                exit = fadeOut()
             ) {
-                Icon(
-                    imageVector = if (radio.isFavorite) Icons.Default.Favorite
-                    else Icons.Default.FavoriteBorder,
-                    contentDescription = "",
-                    tint = if (radio.isFavorite) Color(0xFFE91E63)
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
+                IconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = if (radio.isFavorite) Icons.Default.Favorite
+                        else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorite",
+                        tint = if (radio.isFavorite) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }
 }
 
 /**
- * Estado vacío.
+ * Empty state for radios.
  */
 @Composable
 private fun EmptyRadioState(
@@ -443,24 +498,24 @@ private fun EmptyRadioState(
             Icon(
                 imageVector = Icons.Default.RadioButtonUnchecked,
                 contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
             )
-            
+
             Text(
                 text = when {
-                    showOnlyFavorites -> "No tienes radios favoritas"
-                    hasFilters -> "No se encontraron radios"
-                    else -> "No hay radios disponibles"
+                    showOnlyFavorites -> "No favorite radios"
+                    hasFilters -> "No radios found"
+                    else -> "No radios available"
                 },
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            
+
             if (hasFilters) {
                 Text(
-                    text = "Intenta cambiar los filtros",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "Try changing the filters",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }

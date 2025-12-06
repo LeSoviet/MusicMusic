@@ -16,17 +16,17 @@ import com.musicmusic.ui.components.SongItem
 import org.koin.compose.koinInject
 
 /**
- * Pantalla principal de la biblioteca musical.
- * 
- * Muestra tabs para:
- * - Canciones
- * - Álbumes
- * - Artistas
- * 
- * Incluye:
- * - Búsqueda
- * - Filtros
- * - Ordenamiento
+ * Main music library screen.
+ *
+ * Shows tabs for:
+ * - Songs
+ * - Albums
+ * - Artists
+ *
+ * Includes:
+ * - Search
+ * - Filters
+ * - Sorting
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +61,7 @@ fun LibraryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Indicador de escaneo
+            // Scanning indicator
             if (isScanning) {
                 LinearProgressIndicator(
                     progress = scanProgress,
@@ -192,9 +192,10 @@ private fun SongsTab(
     libraryViewModel: LibraryViewModel = koinInject()
 ) {
     var selectedSongs by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var lastSelectedIndex by remember { mutableStateOf<Int?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Lista de canciones
+        // Song list
         if (songs.isEmpty()) {
             EmptyState(
                 icon = Icons.Rounded.MusicNote,
@@ -206,7 +207,7 @@ private fun SongsTab(
                     start = 16.dp,
                     end = 16.dp,
                     top = 8.dp,
-                    bottom = 120.dp  // Espacio extra para el PlayerBar
+                    bottom = 80.dp  // Extra space for PlayerBar
                 ),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -214,29 +215,50 @@ private fun SongsTab(
                     items = songs,
                     key = { it.id }
                 ) { song ->
+                    val songIndex = songs.indexOf(song)
+
                     SongItem(
                         song = song,
                         onClick = {
-                            // Single click: selecciona y reproduce inmediatamente
-                            selectedSongs = setOf(song.id)
+                            // Fallback for double click
                             onSongClick(song)
                         },
                         isSelected = selectedSongs.contains(song.id),
                         onSelect = {
-                            // Selecciona sin reproducir (no usado)
+                            // Single click: select only
                             selectedSongs = setOf(song.id)
+                            lastSelectedIndex = songIndex
                         },
                         onDoubleClick = {
-                            // Double click: reproduce la canción
+                            // Double click: play the song
                             onSongClick(song)
                         },
-                        onToggleSelection = { shouldAdd ->
-                            // Ctrl+Click: toggle multi-selección
-                            selectedSongs = if (shouldAdd) {
-                                selectedSongs + song.id
-                            } else {
+                        onCtrlClick = {
+                            // Ctrl+Click: toggle multi-selection
+                            selectedSongs = if (selectedSongs.contains(song.id)) {
                                 selectedSongs - song.id
+                            } else {
+                                selectedSongs + song.id
                             }
+                            lastSelectedIndex = songIndex
+                        },
+                        onShiftClick = {
+                            // Shift+Click: range selection
+                            val lastIndex = lastSelectedIndex
+                            if (lastIndex != null) {
+                                val range = if (lastIndex < songIndex) {
+                                    lastIndex..songIndex
+                                } else {
+                                    songIndex..lastIndex
+                                }
+                                selectedSongs = songs
+                                    .filterIndexed { index, _ -> index in range }
+                                    .map { it.id }
+                                    .toSet()
+                            } else {
+                                selectedSongs = setOf(song.id)
+                            }
+                            lastSelectedIndex = songIndex
                         },
                         onToggleFavorite = { onToggleFavorite(song) },
                         onMoreClick = { /* Handled by dropdown */ },

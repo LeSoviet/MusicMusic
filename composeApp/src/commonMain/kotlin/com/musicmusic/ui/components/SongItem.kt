@@ -1,5 +1,7 @@
 package com.musicmusic.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -17,15 +20,22 @@ import com.musicmusic.domain.model.Song
 import com.musicmusic.utils.TimeUtils
 
 /**
- * Item de lista para mostrar una canción.
+ * List item to display a song.
  *
- * Muestra:
- * - Miniatura de carátula
- * - Título y artista
- * - Duración
- * - Botón de favorito
- * - Menú de opciones
+ * Shows:
+ * - Album cover thumbnail
+ * - Title and artist
+ * - Duration
+ * - Favorite button
+ * - Options menu
+ *
+ * Click behavior:
+ * - Single click: Select
+ * - Double click: Play
+ * - Ctrl + Click: Multi-select
+ * - Shift + Click: Range select
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SongItem(
     song: Song,
@@ -41,9 +51,12 @@ fun SongItem(
     onDelete: (() -> Unit)? = null,
     onDoubleClick: (() -> Unit)? = null,
     onSelect: (() -> Unit)? = null,
-    onToggleSelection: ((Boolean) -> Unit)? = null  // Nuevo: para Ctrl+click
+    onCtrlClick: (() -> Unit)? = null,
+    onShiftClick: (() -> Unit)? = null
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    var isCtrlPressed by remember { mutableStateOf(false) }
+    var isShiftPressed by remember { mutableStateOf(false) }
 
     val backgroundColor = when {
         isPlaying -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -55,18 +68,34 @@ fun SongItem(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = {
-                        // Single click: reproduce inmediatamente (sin delay)
-                        onClick()
-                    },
-                    onDoubleTap = {
-                        // Double click: reproduce
-                        onDoubleClick?.invoke() ?: onClick()
+            .onPreviewKeyEvent { keyEvent ->
+                // Track modifier keys
+                when {
+                    keyEvent.key == Key.CtrlLeft || keyEvent.key == Key.CtrlRight -> {
+                        isCtrlPressed = keyEvent.type == KeyEventType.KeyDown
+                        false
                     }
-                )
-            },
+                    keyEvent.key == Key.ShiftLeft || keyEvent.key == Key.ShiftRight -> {
+                        isShiftPressed = keyEvent.type == KeyEventType.KeyDown
+                        false
+                    }
+                    else -> false
+                }
+            }
+            .combinedClickable(
+                onClick = {
+                    // Single click: handle based on modifiers
+                    when {
+                        isCtrlPressed -> onCtrlClick?.invoke()
+                        isShiftPressed -> onShiftClick?.invoke()
+                        else -> onSelect?.invoke()
+                    }
+                },
+                onDoubleClick = {
+                    // Double click: play
+                    onDoubleClick?.invoke() ?: onClick()
+                }
+            ),
         color = backgroundColor
     ) {
         Row(
@@ -76,13 +105,13 @@ fun SongItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Carátula
+            // Cover
             AlbumCoverThumbnail(
                 coverArtPath = song.coverArtPath,
-                size = 48.dp
+                size = 40.dp
             )
-            
-            // Información de la canción
+
+            // Song info
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
@@ -98,9 +127,9 @@ fun SongItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
-                
+
                 Text(
                     text = "${song.artist} • ${song.album}",
                     style = MaterialTheme.typography.bodySmall,
@@ -109,15 +138,15 @@ fun SongItem(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            
-            // Duración
+
+            // Duration
             Text(
                 text = TimeUtils.formatDuration(song.duration),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            
-            // Botón de favorito
+
+            // Favorite button
             IconButton(
                 onClick = onToggleFavorite,
                 modifier = Modifier.size(32.dp)
@@ -137,8 +166,8 @@ fun SongItem(
                     modifier = Modifier.size(20.dp)
                 )
             }
-            
-            // Menú de opciones
+
+            // Options menu
             Box {
                 IconButton(
                     onClick = { showMenu = true },
@@ -247,5 +276,3 @@ fun SongItem(
         }
     }
 }
-
-

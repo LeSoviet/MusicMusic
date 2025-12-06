@@ -3,18 +3,18 @@ package com.musicmusic.domain.model
 import kotlinx.serialization.Serializable
 
 /**
- * Representa una estación de radio online.
+ * Represents an online radio station.
  *
- * @property id Identificador único de la radio
- * @property name Nombre de la estación
- * @property url URL del stream de audio
- * @property genre Género musical
- * @property country País de origen
- * @property logoUrl URL o ruta al logo de la radio
- * @property description Descripción de la radio
- * @property bitrate Bitrate del stream en kbps
- * @property isFavorite Si está marcada como favorita
- * @property tags Etiquetas adicionales (ej: "rock", "news", "talk")
+ * @property id Unique radio identifier
+ * @property name Station name
+ * @property url Audio stream URL
+ * @property genre Music genre
+ * @property country Country of origin
+ * @property logoUrl URL or path to radio logo
+ * @property description Radio description
+ * @property bitrate Stream bitrate in kbps
+ * @property isFavorite Whether it's marked as favorite
+ * @property tags Additional tags (e.g., "rock", "news", "talk")
  */
 @Serializable
 data class Radio(
@@ -30,7 +30,7 @@ data class Radio(
     val tags: List<String> = emptyList()
 ) {
     /**
-     * Convierte la radio a un objeto Song para reproducción.
+     * Converts radio to a Song object for playback.
      */
     fun toSong(): Song {
         return Song(
@@ -38,8 +38,8 @@ data class Radio(
             title = name,
             artist = country ?: "Radio",
             album = genre ?: "Internet Radio",
-            duration = 0L, // Las radios no tienen duración
-            filePath = url, // URL como "path"
+            duration = 0L, // Radios don't have duration
+            filePath = url, // URL as "path"
             coverArtPath = logoUrl,
             genre = genre
         )

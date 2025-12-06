@@ -77,34 +77,6 @@ fun SettingsScreen(
                 }
             }
 
-            // Audio
-            SettingsSection(title = "Audio") {
-                SettingsItem(
-                    icon = Icons.Default.MusicNote,
-                    title = "Audio Quality",
-                    description = "Maximum available quality"
-                ) {
-                    Text(
-                        text = "High",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-                SettingsItem(
-                    icon = Icons.Default.VolumeUp,
-                    title = "Volume Normalization",
-                    description = "Automatically adjust volume between songs"
-                ) {
-                    Switch(
-                        checked = false,
-                        onCheckedChange = { /* TODO */ }
-                    )
-                }
-            }
-
             // Library
             SettingsSection(title = "Library") {
                 SettingsItem(
